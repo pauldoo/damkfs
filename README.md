@@ -23,3 +23,9 @@ To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
 # Running
 
 `qemu-system-x86_64 -drive format=raw,file=./boot.bin`
+
+# Links
+
+http://www.ctyme.com/rbrown.htm
+
+http://www.gabrielececchetti.it/Teaching/CalcolatoriElettronici/Docs/i8086_instruction_set.pdf
