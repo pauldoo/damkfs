@@ -1,12 +1,20 @@
-org 0x7C00
+org 0x0
 bits 16
 
-jmp start
-  
+jmp 0x7C0:start
+
 message:
   db 'Hello World!', 0
   
 start:
+  cli ; clear interrupts
+  mov ax, 0x7C0
+  mov ds, ax
+  mov es, ax
+  mov ax, 0x00
+  mov ss, ax
+  mov sp, 0x7C00
+  sti ; enables interrupts
   mov si, message
   call print
   call fin
