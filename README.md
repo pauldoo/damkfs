@@ -24,6 +24,14 @@ To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
 
 `qemu-system-x86_64 -drive format=raw,file=./boot.bin`
 
+In `gdb`:
+
+`(gdb) target remote | qemu-system-x86_64 -drive format=raw,file=./boot.bin -S -gdb stdio`
+
+`layout asm`
+
+`info registers`
+
 # Links
 
 http://www.ctyme.com/rbrown.htm
