@@ -32,6 +32,15 @@ In `gdb`:
 
 `info registers`
 
+Cross compiler container:
+
+https://wiki.osdev.org/GCC_Cross-Compiler
+
+https://hub.docker.com/r/joshwyant/gcc-cross
+
+`podman run -it gcc-cross /usr/local/cross/bin/i686-elf-gcc -v`
+
+
 # Links
 
 http://www.ctyme.com/rbrown.htm
