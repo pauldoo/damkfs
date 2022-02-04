@@ -39,7 +39,8 @@ main:
   mov eax, cr0
   or eax, 0x01
   mov cr0, eax
-  jmp CODE_SEG:load32
+  ;jmp CODE_SEG:load32
+  jmp fin
 
 
 read_and_print_second_sector:
@@ -119,6 +120,20 @@ fin:
   hlt
   jmp .loop
 
+[BITS 32]
+load32:
+  mov eax, 1
+  mov ecx, 100
+  mov edi, 0x00100000
+  call ata_lba_read
+
+ata_lba_read:
+  mov ebx, eax ; backup the LBA
+  ; Send highest 8 buts of the lba ..
+  ; WIP..
+  ; https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23972412
+  ; at 25 minutes.
+
 message:
 .hello:
   db 'Hello!', 0
@@ -130,26 +145,6 @@ message:
   db 'Jumping to protected.', 0
 .crlf:
   db 0xD, 0xA, 0x0
-
-[bits 32]
-load32:
-  mov ax, DATA_SEG
-  mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
-  mov ss, ax
-  mov ebp, 0x00200000
-  mov esp, ebp
-
-  ; Enable A20 line
-  in al, 0x92
-  or al, 0x02
-  out 0x92, al
-
-.loop:
-  hlt
-  jmp .loop
 
 times 510-($ - $$) db 0x00
 dw 0xAA55

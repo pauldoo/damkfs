@@ -22,7 +22,11 @@ To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
 
 # Running
 
+## QEMU
+
 `qemu-system-x86_64 -drive format=raw,file=./boot.bin`
+
+## GDB
 
 In `gdb`:
 
@@ -32,17 +36,25 @@ In `gdb`:
 
 `info registers`
 
-Cross compiler container:
+## GCC cross compiler
 
 https://wiki.osdev.org/GCC_Cross-Compiler
 
+Docker container seems easiest:
+
 https://hub.docker.com/r/joshwyant/gcc-cross
 
-`podman run -it gcc-cross /usr/local/cross/bin/i686-elf-gcc -v`
+Enter container: `./enter.sh`
+
+Inside the container: `./build.sh`
 
 
 # Links
 
+https://github.com/nibblebits/PeachOS
+
 http://www.ctyme.com/rbrown.htm
 
 http://www.gabrielececchetti.it/Teaching/CalcolatoriElettronici/Docs/i8086_instruction_set.pdf
+
+https://wiki.osdev.org/
