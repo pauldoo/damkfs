@@ -20,5 +20,4 @@ void kernel_main() {
 
     idt_init();
 
-    out_b(0x60, 0xff); // example write
 }

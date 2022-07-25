@@ -21,6 +21,16 @@ _start:
   or al, 0x02
   out 0x92, al
 
+  ; remap master PIC
+  mov al, 00010001b
+  out 0x20, al
+  mov al, 0x20
+  out 0x21, al
+  mov al, 00000001b
+  out 0x21, al
+
+  sti ; a tiny bit too early, as IDT has yet to be initialized, but addressed later in course.
+
   call kernel_main
 
 .loop:
