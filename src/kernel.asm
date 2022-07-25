@@ -22,3 +22,9 @@ _start:
 .loop:
   hlt
   jmp .loop
+
+; kernel.asm file is first in the kernel image, so pad to ensure alignment with following C code
+; other asm files are linked to the end of the kernel image so don't need this.
+; IOW, kernel.asm is in the .text section, not .asm.
+times 512-($ - $$) db 0x00
+
