@@ -24,7 +24,7 @@ To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
 
 ## QEMU
 
-`qemu-system-x86_64 -drive format=raw,file=./bin/os.bin`
+`qemu-system-x86_64 -m 1G -drive format=raw,file=./bin/os.bin`
 
 ## GDB
 
@@ -35,7 +35,7 @@ add-symbol-file build/kernelfull.o 0x00100000
 
 break _start
 
-target remote | qemu-system-x86_64 -drive format=raw,file=./bin/os.bin -S -gdb stdio
+target remote | qemu-system-x86_64 -m 1G -drive format=raw,file=./bin/os.bin -S -gdb stdio
 ```
 
 ```

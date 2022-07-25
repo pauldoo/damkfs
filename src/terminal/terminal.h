@@ -31,3 +31,7 @@ void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum termin
 void terminal_put_string(int x, int y, const char* s, enum terminal_color fg, enum terminal_color bg);
 
 void terminal_print(const char* s, enum terminal_color fg, enum terminal_color bg);
+
+void panic(const char* s);
+
+void terminal_print_num(uint32_t, enum terminal_color fg, enum terminal_color bg);

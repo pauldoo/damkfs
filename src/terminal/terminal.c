@@ -58,3 +58,26 @@ void terminal_print(const char* s, enum terminal_color fg, enum terminal_color b
         s++;
     }
 }
+
+void panic(const char* s) {
+    terminal_print("\nPaNiC!\n", White, Red);
+    terminal_print(s, White, Red);
+    terminal_print("\nPaNiC!\n", White, Red);
+    while (1) {};
+}
+
+void terminal_print_num(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
+    if (num == 0) {
+        terminal_print("0", fg, bg);
+        return;
+    }
+    if (num / 10 != 0) {
+        terminal_print_num(num / 10, fg, bg);
+    }
+    char str[2];
+    str[0] = '0' + (num % 10);
+    str[1] = 0;
+    terminal_print(str, fg, bg);
+}
+
+
