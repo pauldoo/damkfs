@@ -4,6 +4,7 @@
 #include "terminal/terminal.h"
 #include "idt/idt.h"
 #include "memory/memory.h"
+#include "io/io.h"
 
 void kernel_main() {
     terminal_clear();
@@ -19,5 +20,5 @@ void kernel_main() {
 
     idt_init();
 
-
+    out_b(0x60, 0xff); // example write
 }

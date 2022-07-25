@@ -4,7 +4,8 @@ FILES = \
   ./build/terminal/terminal.o \
   ./build/memory/memory.o \
   ./build/idt/idt.asm.o \
-  ./build/idt/idt.o
+  ./build/idt/idt.o \
+  ./build/io/io.asm.o
 
 INCLUDES = -I./src
 FLAGS = \
@@ -76,6 +77,15 @@ clean:
 	  -g \
 	  -o $@ \
 	  $<
+
+./build/io/io.asm.o: ./src/io/io.asm | builddir
+	mkdir -p build/io
+	nasm \
+	  -f elf \
+	  -g \
+	  -o $@ \
+	  $<
+
 
 # C builds
 
