@@ -1,4 +1,4 @@
-#include "vga_terminal.h"
+#include "terminal.h"
 
 const int terminal_width = 80;
 const int terminal_height = 25;

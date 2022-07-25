@@ -1,12 +1,23 @@
 
 #include "kernel.h"
 
-#include "vga_terminal.h"
-
+#include "terminal/terminal.h"
+#include "idt/idt.h"
+#include "memory/memory.h"
 
 void kernel_main() {
     terminal_clear();
 
-    terminal_put_string(terminal_width / 2, terminal_height / 2, "Hello World!!!", Yellow, Blue);
+    const char* const message = "Hello World!!";
+    terminal_put_string(
+        (terminal_width - strlen(message)) / 2,
+        terminal_height / 2,
+        message,
+        Yellow,
+        Blue);
     terminal_print("Hello\nWorld!\n", Light_Green, Blue);
+
+    idt_init();
+
+
 }

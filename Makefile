@@ -1,4 +1,11 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o ./build/vga_terminal.o
+FILES = \
+  ./build/kernel.asm.o \
+  ./build/kernel.o \
+  ./build/terminal/terminal.o \
+  ./build/memory/memory.o \
+  ./build/idt/idt.asm.o \
+  ./build/idt/idt.o
+
 INCLUDES = -I./src
 FLAGS = \
   -g \
@@ -10,12 +17,7 @@ FLAGS = \
   -fstrength-reduce \
   -fomit-frame-pointer \
   -finline-functions \
-  -Wno-unused-function \
   -fno-builtin \
-  -Werror \
-  -Wno-unused-label \
-  -Wno-cpp \
-  -Wno-unused-parameter \
   -nostdlib \
   -nostartfiles \
   -nodefaultlibs \
@@ -34,6 +36,7 @@ all: ./bin/os.bin
 clean:
 	rm -rf ./bin ./build
 
+# Bootloader
 
 ./bin/boot.bin: ./src/boot/boot.asm | bindir
 	nasm \
@@ -41,8 +44,7 @@ clean:
 	  -o $@ \
 	  $<
 
-#	echo -n -e 'Hello from 2nd sector!\0' >> ./bin/boot.bin
-#	dd if=/dev/zero bs=512 count=1 >> ./bin/boot.bin
+# Link the kernel
 
 ./bin/kernel.bin: ./src/linker.ld ./build/kernelfull.o | bindir
 	i686-elf-gcc \
@@ -58,12 +60,24 @@ clean:
 	  -o $@ \
 	  $^
 
+# NASM builds
+
 ./build/kernel.asm.o: ./src/kernel.asm | builddir
 	nasm \
 	  -f elf \
 	  -g \
 	  -o $@ \
 	  $<
+
+./build/idt/idt.asm.o: ./src/idt/idt.asm | builddir
+	mkdir -p build/idt
+	nasm \
+	  -f elf \
+	  -g \
+	  -o $@ \
+	  $<
+
+# C builds
 
 ./build/kernel.o: ./src/kernel.c | builddir
 	i686-elf-gcc \
@@ -73,7 +87,26 @@ clean:
 	    -c $< \
 	    -o $@
 
-./build/vga_terminal.o: ./src/vga_terminal.c | builddir
+./build/terminal/terminal.o: ./src/terminal/terminal.c | builddir
+	mkdir -p build/terminal
+	i686-elf-gcc \
+	    $(INCLUDES) \
+	    $(FLAGS) \
+	    -std=gnu99 \
+	    -c $< \
+	    -o $@
+
+./build/memory/memory.o: ./src/memory/memory.c | builddir
+	mkdir -p build/memory
+	i686-elf-gcc \
+	    $(INCLUDES) \
+	    $(FLAGS) \
+	    -std=gnu99 \
+	    -c $< \
+	    -o $@
+
+./build/idt/idt.o: ./src/idt/idt.c | builddir
+	mkdir -p build/idt
 	i686-elf-gcc \
 	    $(INCLUDES) \
 	    $(FLAGS) \
