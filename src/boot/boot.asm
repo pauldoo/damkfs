@@ -29,8 +29,6 @@ main:
   mov si, message.hello
   call println
 
-  call read_and_print_second_sector
-
 .load_protected:
   mov si, message.jumping
   call println
@@ -39,36 +37,7 @@ main:
   mov eax, cr0
   or eax, 0x01
   mov cr0, eax
-  ;jmp CODE_SEG:load32
-  jmp fin
-
-
-read_and_print_second_sector:
-  mov si, message.start
-  call println
-
-  ; http://www.ctyme.com/intr/rb-0607.htm
-  mov ah, 0x2 ; "read sector" command
-  mov al, 0x1 ; sectors to read
-  mov ch, 0x0 ; cylinder number (low eight bits)
-  mov cl, 0x2 ; sector index to read (sectors are numbered starting at one)
-  mov dh, 0x0 ; head number
-  mov bx, buffer
-  int 0x13
-
-  jc .error
-  jmp .okay
-.okay:
-  mov si, buffer
-  call println
-  jmp .end
-.error:
-  mov si, message.failed
-  call println
-  jmp .end
-
-.end:
-  ret
+  jmp CODE_SEG:load32
 
 gdt_start:
 gdt_null:
@@ -115,32 +84,87 @@ print:
 .done:
   ret
    
-fin:
-.loop:
-  hlt
-  jmp .loop
 
 [BITS 32]
 load32:
-  mov eax, 1
-  mov ecx, 100
-  mov edi, 0x00100000
+  mov eax, 1 ; start sector
+  mov ecx, 100 ; number of sectors to read
+  mov edi, 0x00100000 ; location in ram to read into
   call ata_lba_read
+  jmp CODE_SEG:0x00100000
 
+; https://wiki.osdev.org/ATA_read/write_sectors#Read_in_LBA_mode
 ata_lba_read:
   mov ebx, eax ; backup the LBA
-  ; Send highest 8 buts of the lba ..
+  
   ; WIP..
   ; https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/learn/lecture/23972412
   ; at 25 minutes.
 
+  ; Is the order of doing these port writes important?
+  ; why send the highest byte first?
+
+  ; Send 4th byte of the LBA ..
+  mov eax, ebx
+  shr eax, 24
+  or eax, 0xE0 ; Select master drive
+  mov dx, 0x01F6
+  out dx, al
+
+  ; Send total number of sectors to read
+  mov eax, ecx
+  mov dx, 0x01F2
+  out dx, al
+
+  ; Send 1st byte of LBA ..
+  mov eax, ebx
+  mov dx, 0X01F3
+  out dx, al
+
+  ; Send 2nd byte of the LBA ..
+  mov eax, ebx
+  shr eax, 8
+  mov dx, 0x01F4
+  out dx, al
+
+  ; Send 3rd byte of the LBA ..
+  mov eax, ebx
+  shr eax, 16
+  mov dx, 0x01F5
+  out dx, al
+
+  ; Initiate read
+  mov dx, 0x01F7
+  mov al, 0x20
+  out dx, al
+
+  ; Read all sectors
+.next_sector:
+  push ecx ; save number of sectors to read
+
+  ; Check if we need to read
+.try_again:
+  mov dx, 0x01F7
+  in al, dx
+  test al, 8
+  ;hlt ; shoud not be here?
+  jz .try_again
+
+  ; Read sector (256 words)
+  mov ecx, 256
+  mov dx, 0x01F0
+  rep insw
+
+  ; restore number of sectors to read, and loop
+  pop ecx
+  loop .next_sector
+
+  ret
+
+
 message:
 .hello:
   db 'Hello!', 0
-.start:
-  db 'Reading 2nd sector of disk.', 0
-.failed:
-  db 'Failed to read sector.', 0
 .jumping:
   db 'Jumping to protected.', 0
 .crlf:
@@ -149,4 +173,3 @@ message:
 times 510-($ - $$) db 0x00
 dw 0xAA55
 
-buffer:

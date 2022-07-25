@@ -24,17 +24,25 @@ To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
 
 ## QEMU
 
-`qemu-system-x86_64 -drive format=raw,file=./boot.bin`
+`qemu-system-x86_64 -drive format=raw,file=./bin/os.bin`
 
 ## GDB
 
 In `gdb`:
 
-`(gdb) target remote | qemu-system-x86_64 -drive format=raw,file=./boot.bin -S -gdb stdio`
+```
+add-symbol-file build/kernelfull.o 0x00100000
 
-`layout asm`
+break _start
 
-`info registers`
+target remote | qemu-system-x86_64 -drive format=raw,file=./bin/os.bin -S -gdb stdio
+```
+
+```
+layout asm
+
+info registers
+```
 
 ## GCC cross compiler
 
@@ -58,3 +66,7 @@ http://www.ctyme.com/rbrown.htm
 http://www.gabrielececchetti.it/Teaching/CalcolatoriElettronici/Docs/i8086_instruction_set.pdf
 
 https://wiki.osdev.org/
+
+https://wiki.osdev.org/CPU_Registers_x86
+
+https://wiki.osdev.org/ATA_read/write_sectors
