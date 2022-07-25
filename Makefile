@@ -1,4 +1,4 @@
-FILES = ./build/kernel.asm.o ./build/kernel.o
+FILES = ./build/kernel.asm.o ./build/kernel.o ./build/vga_terminal.o
 INCLUDES = -I./src
 FLAGS = \
   -g \
@@ -72,6 +72,15 @@ clean:
 	    -std=gnu99 \
 	    -c $< \
 	    -o $@
+
+./build/vga_terminal.o: ./src/vga_terminal.c | builddir
+	i686-elf-gcc \
+	    $(INCLUDES) \
+	    $(FLAGS) \
+	    -std=gnu99 \
+	    -c $< \
+	    -o $@
+
 
 bindir:
 	mkdir -p bin
