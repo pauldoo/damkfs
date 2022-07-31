@@ -44,20 +44,15 @@ static void excercise_heap() {
 }
 
 void kernel_main() {
-    terminal_clear();
-
-    const char* const message = "Hello World!!";
-    terminal_put_string(
-        (terminal_width - strlen(message)) / 2,
-        terminal_height / 2,
-        message,
-        Yellow,
-        Blue);
-    terminal_print("Hello\nWorld!\n", Light_Green, Blue);
-
     idt_init();
 
-    initialize_heap();
+    terminal_clear(Dark_Gray); 
+    terminal_print("Hello world!\n", Light_Green, Dark_Gray);
+
+    initialize_heaps();
+    terminal_print("Heaps initialized.\n", Light_Green, Dark_Gray);
 
     excercise_heap();
+
+    halt();
 }

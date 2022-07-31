@@ -21,22 +21,14 @@ void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum termin
     }
 }
 
-void terminal_clear() {
+void terminal_clear(enum terminal_color bg) {
     for (int y = 0; y < terminal_height; y++) {
         for (int x = 0; x < terminal_width; x++) {
-            terminal_put_char(x, y, ' ', White, Dark_Gray);
+            terminal_put_char(x, y, ' ', White, bg);
         }
     }
     terminal_x = 0;
     terminal_y = 0;
-}
-
-void terminal_put_string(int x, int y, const char* s, enum terminal_color fg, enum terminal_color bg) {
-    while (*s != 0 && x < terminal_width) {
-        terminal_put_char(x, y, *s, fg, bg);
-        x++;
-        s++;
-    }
 }
 
 void terminal_print(const char* s, enum terminal_color fg, enum terminal_color bg) {
@@ -59,12 +51,35 @@ void terminal_print(const char* s, enum terminal_color fg, enum terminal_color b
     }
 }
 
-void panic(const char* s) {
-    terminal_print("\nPaNiC!\n", White, Red);
-    terminal_print(s, White, Red);
-    terminal_print("\nPaNiC!\n", White, Red);
-    while (1) {};
+static void print_failure(const char* label, const char* expr, const char* file, int line, const char* func) {
+    terminal_print("\n", White, Red);
+    terminal_print(label, White, Red);
+    terminal_print(": ", White, Red);
+    terminal_print(expr, White, Red);
+    terminal_print(" failed\n", White, Red);
+    terminal_print(func, White, Red);
+    terminal_print(" (", White, Red);
+    terminal_print(file, White, Red);
+    terminal_print(":", White, Red);
+    terminal_print_num(line, White, Red);
+    terminal_print(")\n", White, Red);
 }
+
+void halt() {
+    while (1) {
+        asm("hlt");
+    }
+}
+
+void __prefer_fail(const char* expr, const char* file, int line, const char* func) {
+    print_failure("WARNING", expr, file, line, func);
+}
+
+void __assert_fail(const char* expr, const char* file, int line, const char* func) {
+    print_failure("ERROR", expr, file, line, func);
+    halt();
+}
+
 
 void terminal_print_num(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
     if (num == 0) {

@@ -3,6 +3,7 @@ FILES = \
   ./build/kernel.o \
   ./build/terminal/terminal.o \
   ./build/memory/memory.o \
+  ./build/memory/heap.o \
   ./build/idt/idt.asm.o \
   ./build/idt/idt.o \
   ./build/io/io.asm.o
@@ -10,20 +11,13 @@ FILES = \
 INCLUDES = -I./src
 FLAGS = \
   -g \
+  -Og \
   -ffreestanding \
-  -falign-jumps \
-  -falign-functions \
-  -falign-labels \
-  -falign-loops \
-  -fstrength-reduce \
-  -fomit-frame-pointer \
-  -finline-functions \
   -fno-builtin \
   -nostdlib \
   -nostartfiles \
   -nodefaultlibs \
   -Wall \
-  -O0 \
   -Iinc
 
 all: ./bin/os.bin
@@ -107,6 +101,15 @@ clean:
 	    -o $@
 
 ./build/memory/memory.o: ./src/memory/memory.c | builddir
+	mkdir -p build/memory
+	i686-elf-gcc \
+	    $(INCLUDES) \
+	    $(FLAGS) \
+	    -std=gnu99 \
+	    -c $< \
+	    -o $@
+
+./build/memory/heap.o: ./src/memory/heap.c | builddir
 	mkdir -p build/memory
 	i686-elf-gcc \
 	    $(INCLUDES) \
