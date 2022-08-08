@@ -54,5 +54,6 @@ void kernel_main() {
 
     excercise_heap();
 
+    terminal_print("Finished.\n", Light_Green, Dark_Gray);
     halt();
 }

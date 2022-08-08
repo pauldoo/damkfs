@@ -8,4 +8,6 @@ set -x
 export PREFIX="/usr/local/cross"
 export TARGET="i686-elf"
 
+make clean
+
 make

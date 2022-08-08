@@ -33,6 +33,8 @@ static struct idt_desc idt_descriptors[IDT_TOTAL_INTERRUPTS] = { 0 };
 
 
 // from idt.asm
+extern void enable_interrupts();
+
 extern void idt_load(const struct idtr_desc * idtr_descriptor);
 
 extern void int21h();
@@ -81,6 +83,7 @@ void idt_init() {
     idt_set(0x21, int21h);
 
     call_lidt();
+    enable_interrupts();
 }
 
 void int21h_handler() {

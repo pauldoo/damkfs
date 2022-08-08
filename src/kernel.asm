@@ -29,8 +29,6 @@ _start:
   mov al, 00000001b
   out 0x21, al
 
-  sti ; a tiny bit too early, as IDT has yet to be initialized, but addressed later in course.
-
   call kernel_main
 
 .loop:
