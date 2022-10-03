@@ -5,6 +5,7 @@
 #include "idt/idt.h"
 #include "memory/memory.h"
 #include "io/io.h"
+#include "memory/paging.h"
 
 static void excercise_heap() {
     int* a = kmalloc(4);
@@ -43,17 +44,36 @@ static void excercise_heap() {
     terminal_print("End.\n", White, Black);    
 }
 
-void kernel_main() {
-    idt_init();
+static struct page_directory* kernel_pd = 0;
 
+void kernel_main() {
+    // Hello
     terminal_clear(Dark_Gray); 
     terminal_print("Hello world!\n", Light_Green, Dark_Gray);
 
+    // Heaps
     initialize_heaps();
     terminal_print("Heaps initialized.\n", Light_Green, Dark_Gray);
 
+    // Paging
+    kernel_pd = page_directory_create();
+    terminal_print("Kernel page directory allocated.\n", Light_Green, Dark_Gray);
+    page_directory_populate_linear(kernel_pd, paging_is_present | paging_is_writeable | paging_access_from_all);
+    terminal_print("Kernel page directory populated.\n", Light_Green, Dark_Gray);
+    page_directory_switch(kernel_pd);
+    terminal_print("Kernel page directory selected.\n", Light_Green, Dark_Gray);
+    enable_paging();
+    terminal_print("Paging enabled.\n", Light_Green, Dark_Gray);
+
+    // Enable interrupts
+    idt_init();
+
+
+
+    // Test
     excercise_heap();
 
+    // Fin.
     terminal_print("Finished.\n", Light_Green, Dark_Gray);
     halt();
 }

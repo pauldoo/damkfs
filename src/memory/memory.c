@@ -34,15 +34,32 @@ void* kmalloc(size_t len) {
         (len + malloc_heap.block_size - 1) / malloc_heap.block_size);
 }
 
+void* kcalloc(size_t len) {
+    void* const result = kmalloc(len);
+    if (result != NULL) {
+        memzero(result, len);
+    }
+    return result;
+}
+
 void kfree(void* p) {
     return heap_free(&malloc_heap, p);
 }
 
 void* page_alloc(int page_count) {
-    return heap_alloc(
+    void* result = heap_alloc(
         &page_heap,
         page_count
     );
+    return result;
+}
+
+void* page_calloc(int page_count) {
+    void* const result = page_alloc(page_count);
+    if (result != NULL) {
+        memzero(result, page_count * page_heap.block_size);
+    }
+    return result;
 }
 
 void page_free(void* p) {

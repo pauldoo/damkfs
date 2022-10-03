@@ -1,3 +1,4 @@
+[BITS 32]
 section .asm
 
 extern int21h_handler

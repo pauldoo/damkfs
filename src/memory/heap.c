@@ -40,10 +40,12 @@ static int ceil_div(int a, int b) {
 }
 
 void heap_initialize(struct heap* heap, void* data, uint32_t length, uint32_t block_size) {
+    ASSERT( ((uint32_t)data) % block_size == 0 );
     memzero(data, length);
     heap->block_size = block_size;
     heap->block_count = length / block_size;
     heap->blocks = data;
+    heap->cursor = 0;
 
     for (int i = 0; i < heap->block_count; i++) {
         *(table_entry(heap, i)) = 0x0;
@@ -54,13 +56,16 @@ void heap_initialize(struct heap* heap, void* data, uint32_t length, uint32_t bl
 }
 
 void* heap_alloc(struct heap* heap, int block_count) {
+    ASSERT( heap->cursor >= 0 && heap->cursor < heap->block_count );
     const int orig_cursor = heap->cursor;
     do {
         const int end = heap->cursor + block_count;
         if (end <= heap->block_count &&
             range_is_free(heap, heap->cursor, end)) {
             mark_blocks_used(heap, heap->cursor, end);
-            return heap->blocks + (heap->cursor * heap->block_size);
+            void* const result = heap->blocks + (heap->cursor * heap->block_size);
+            ASSERT( ((uint32_t)result) % heap->block_size == 0 );
+            return result;
         }
         heap->cursor = (heap->cursor+1) % heap->block_count;
     } while (heap->cursor != orig_cursor);

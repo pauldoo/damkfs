@@ -4,6 +4,8 @@ FILES = \
   ./build/terminal/terminal.o \
   ./build/memory/memory.o \
   ./build/memory/heap.o \
+  ./build/memory/paging.asm.o \
+  ./build/memory/paging.o \
   ./build/idt/idt.asm.o \
   ./build/idt/idt.o \
   ./build/io/io.asm.o
@@ -80,6 +82,14 @@ clean:
 	  -o $@ \
 	  $<
 
+./build/memory/paging.asm.o: ./src/memory/paging.asm | builddir
+	mkdir -p build/memory
+	nasm \
+	  -f elf \
+	  -g \
+	  -o $@ \
+	  $<
+
 
 # C builds
 
@@ -110,6 +120,15 @@ clean:
 	    -o $@
 
 ./build/memory/heap.o: ./src/memory/heap.c | builddir
+	mkdir -p build/memory
+	i686-elf-gcc \
+	    $(INCLUDES) \
+	    $(FLAGS) \
+	    -std=gnu99 \
+	    -c $< \
+	    -o $@
+
+./build/memory/paging.o: ./src/memory/paging.c | builddir
 	mkdir -p build/memory
 	i686-elf-gcc \
 	    $(INCLUDES) \

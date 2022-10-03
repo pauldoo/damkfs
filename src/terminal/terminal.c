@@ -61,7 +61,7 @@ static void print_failure(const char* label, const char* expr, const char* file,
     terminal_print(" (", White, Red);
     terminal_print(file, White, Red);
     terminal_print(":", White, Red);
-    terminal_print_num(line, White, Red);
+    terminal_print_dec(line, White, Red);
     terminal_print(")\n", White, Red);
 }
 
@@ -81,13 +81,13 @@ void __assert_fail(const char* expr, const char* file, int line, const char* fun
 }
 
 
-void terminal_print_num(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
+void terminal_print_dec(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
     if (num == 0) {
         terminal_print("0", fg, bg);
         return;
     }
     if (num / 10 != 0) {
-        terminal_print_num(num / 10, fg, bg);
+        terminal_print_dec(num / 10, fg, bg);
     }
     char str[2];
     str[0] = '0' + (num % 10);
@@ -95,4 +95,23 @@ void terminal_print_num(uint32_t num, enum terminal_color fg, enum terminal_colo
     terminal_print(str, fg, bg);
 }
 
+void terminal_print_hex_imp(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
+    if (num == 0) {
+        terminal_print("0", fg, bg);
+        return;
+    }
+    if (num / 16 != 0) {
+        terminal_print_hex_imp(num / 16, fg, bg);
+    }
+    char str[2];
+    const int digit = num % 16;
+    str[0] = (digit < 10) ? ('0' + digit) : ('a' + (digit - 10));
+    str[1] = 0;
+    terminal_print(str, fg, bg);
+}
+
+void terminal_print_hex(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
+    terminal_print("0x", fg, bg);
+    terminal_print_hex_imp(num, fg, bg);
+}
 

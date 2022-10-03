@@ -1,3 +1,4 @@
+[BITS 32]
 section .asm
 
 global in_b

@@ -30,7 +30,8 @@ void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum termin
 
 void terminal_print(const char* s, enum terminal_color fg, enum terminal_color bg);
 
-void terminal_print_num(uint32_t, enum terminal_color fg, enum terminal_color bg);
+void terminal_print_dec(uint32_t, enum terminal_color fg, enum terminal_color bg);
+void terminal_print_hex(uint32_t, enum terminal_color fg, enum terminal_color bg);
 
 void halt() __attribute__ ((noreturn));
 
@@ -38,6 +39,6 @@ void __prefer_fail(const char* expr, const char* file, int line, const char* fun
 
 void __assert_fail(const char* expr, const char* file, int line, const char* func) __attribute__ ((noreturn));
 
-#define PREFER(expr) if (expr) {} else { __prefer_fail(#expr, __FILE__, __LINE__, __func__); }
+#define PREFER(expr) if (!!(expr)) {} else { __prefer_fail(#expr, __FILE__, __LINE__, __func__); }
 
-#define ASSERT(expr) if (expr) {} else { __assert_fail(#expr, __FILE__, __LINE__, __func__); }
+#define ASSERT(expr) if (!!(expr)) {} else { __assert_fail(#expr, __FILE__, __LINE__, __func__); }
