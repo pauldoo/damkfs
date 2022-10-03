@@ -51,6 +51,15 @@ void kernel_main() {
     terminal_clear(Dark_Gray); 
     terminal_print("Hello world!\n", Light_Green, Dark_Gray);
 
+    terminal_print_dec(12340, Light_Green, Dark_Gray);
+    terminal_print("\n", Light_Green, Dark_Gray);
+    terminal_print_dec(0, Light_Green, Dark_Gray);
+    terminal_print("\n", Light_Green, Dark_Gray);
+    terminal_print_hex(0x12abc, Light_Green, Dark_Gray);
+    terminal_print("\n", Light_Green, Dark_Gray);
+    terminal_print_hex(0x0, Light_Green, Dark_Gray);
+    terminal_print("\n", Light_Green, Dark_Gray);
+
     // Heaps
     initialize_heaps();
     terminal_print("Heaps initialized.\n", Light_Green, Dark_Gray);
