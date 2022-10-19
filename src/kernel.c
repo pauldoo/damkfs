@@ -44,7 +44,7 @@ static void excercise_heap() {
     terminal_print("End.\n", White, Black);    
 }
 
-static struct page_directory* kernel_pd = 0;
+static page_directory* kernel_pd = 0;
 
 void kernel_main() {
     // Hello

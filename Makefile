@@ -20,6 +20,7 @@ FLAGS = \
   -nostartfiles \
   -nodefaultlibs \
   -Wall \
+  -Werror \
   -Iinc
 
 all: ./bin/os.bin

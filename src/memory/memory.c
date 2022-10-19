@@ -6,8 +6,8 @@
 static void * const heap_base = ((void*)0x01000000); // starts at 16M
 static const size_t heap_size = 0x10000000; // is 256M long
 
-static struct heap malloc_heap = {0};
-static struct heap page_heap = {0};
+static heap malloc_heap = {0};
+static heap page_heap = {0};
 
 void memzero(void* p, size_t len) {
     for (size_t i = 0; i < len; i++) {

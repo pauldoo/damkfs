@@ -9,21 +9,19 @@ extern const uint16_t paging_access_from_all;
 extern const uint16_t paging_is_writeable;
 extern const uint16_t paging_is_present;
 
-struct page_directory
-{
+typedef struct page_directory_t {
     uint32_t entry[PAGING_ENTRIES_PER_TABLE];
-};
+} page_directory;
 
-struct page_table
-{
+typedef struct page_table_t {
     uint32_t entry[PAGING_ENTRIES_PER_TABLE];
-};
+} page_table;
 
-struct page_directory *page_directory_create();
+page_directory* page_directory_create();
 
-void page_directory_populate_linear(struct page_directory *page_directory, uint16_t flags);
+void page_directory_populate_linear(page_directory *page_directory, uint16_t flags);
 
-void page_directory_switch(struct page_directory *page_directory);
+void page_directory_switch(page_directory *page_directory);
 
 // kernel.asm
 void enable_paging();

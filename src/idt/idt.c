@@ -5,37 +5,38 @@
 #include "terminal/terminal.h"
 #include "io/io.h"
 
-#define IDT_TOTAL_INTERRUPTS ((int)(256))
+#define IDT_TOTAL_INTERRUPTS (256)
 
 
 // https://wiki.osdev.org/Interrupt_Descriptor_Table
 
-struct idt_desc {
+typedef struct idt_desc_t {
   uint16_t offset_1; // offset bits 0..15
   uint16_t selector; // selector in GDT
   uint8_t unused; // should be zero
   uint8_t type_attribute; // descriptor type and attributes
   uint16_t offset_2; // offset bits 16..31
-} __attribute__((packed));
+} __attribute__((packed)) idt_desc;
 
-struct idtr_desc {
+typedef struct idtr_desc_t {
   uint16_t limit; // size of IDT table in bytes minus 1
   uint32_t base; // Address of start of table
-} __attribute__((packed));
+} __attribute__((packed)) idtr_desc;
 
 
 
 // Constants from kernel.asm
 static const uint8_t kernel_code_selector = 0x08;
-static const uint8_t kernel_data_selector = 0x10;
+// temporarily unused:
+//static const uint8_t kernel_data_selector = 0x10;
 
-static struct idt_desc idt_descriptors[IDT_TOTAL_INTERRUPTS] = { 0 };
+static idt_desc idt_descriptors[IDT_TOTAL_INTERRUPTS] = { 0 };
 
 
 // from idt.asm
 extern void enable_interrupts();
 
-extern void idt_load(const struct idtr_desc * idtr_descriptor);
+extern void idt_load(const idtr_desc * idtr_descriptor);
 
 extern void int21h();
 
@@ -43,7 +44,7 @@ extern void no_interrupt();
 
 
 static void idt_set(int interrupt_number, void* address) {
-     struct idt_desc* desc = &(idt_descriptors[interrupt_number]);
+     idt_desc* desc = &(idt_descriptors[interrupt_number]);
      desc->offset_1 = ((uint32_t)address) & 0x0000ffff;
      desc->offset_2 = ((uint32_t)address) >> 16;
 
@@ -64,7 +65,7 @@ static void idt_zero() {
 
 
 static void call_lidt() {
-    struct idtr_desc idtr_descriptor = {
+    idtr_desc idtr_descriptor = {
         .base = (uint32_t)idt_descriptors,
         .limit = sizeof(idt_descriptors) - 1
     };

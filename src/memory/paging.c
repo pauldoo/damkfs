@@ -19,15 +19,15 @@ static const uint32_t address_mask =
 static const uint32_t flag_mask =
     0x00000fff; // Lower 12 bits
 
-static struct page_directory* current_page_directory = 0;
+static page_directory* current_page_directory = 0;
 
 
 // from paging.asm
-void paging_load_directory(struct page_directory* page_directory);
+void paging_load_directory(page_directory* page_directory);
 
-static struct page_table* make_page_table() {
-    ASSERT(sizeof(struct page_directory) == 4096);
-    struct page_table* const result = page_calloc(1);
+static page_table* make_page_table() {
+    ASSERT(sizeof(page_directory) == 4096);
+    page_table* const result = page_calloc(1);
     ASSERT((((uint32_t)result) & address_mask) == ((uint32_t)result));
 
     for (int i = 0; i < PAGING_ENTRIES_PER_TABLE; i++) {
@@ -38,24 +38,24 @@ static struct page_table* make_page_table() {
     return result;
 }
 
-struct page_directory* page_directory_create() {
-    ASSERT(sizeof(struct page_directory) == 4096);
-    struct page_directory* const result = page_calloc(1);
+page_directory* page_directory_create() {
+    ASSERT(sizeof(page_directory) == 4096);
+    page_directory* const result = page_calloc(1);
     ASSERT((((uint32_t)result) & address_mask) == ((uint32_t)result));
 
     for (int i = 0; i < PAGING_ENTRIES_PER_TABLE; i++) {
-        struct page_table* page_table = make_page_table();
+        page_table* page_table = make_page_table();
         uint32_t entry = (uint32_t)(page_table) | paging_is_writeable;
         result->entry[i] = entry;
     }
     return result;
 }
 
-void page_directory_populate_linear(struct page_directory* page_directory, uint16_t flags) {
+void page_directory_populate_linear(page_directory* page_directory, uint16_t flags) {
     ASSERT( (flags & flag_mask) == flags ); // Only lowest 12 bits can be set.
 
     for (int i = 0; i < PAGING_ENTRIES_PER_TABLE; i++) {
-        struct page_table* pt = (struct page_table*)(page_directory->entry[i] & address_mask);
+        page_table* pt = (page_table*)(page_directory->entry[i] & address_mask);
         ASSERT(pt != NULL);
         for (int j = 0; j < PAGING_ENTRIES_PER_TABLE; j++) {
             const int page_number = i * PAGING_ENTRIES_PER_TABLE + j;
@@ -65,7 +65,7 @@ void page_directory_populate_linear(struct page_directory* page_directory, uint1
     }
 }
 
-void page_directory_switch(struct page_directory* page_directory)
+void page_directory_switch(page_directory* page_directory)
 {
     paging_load_directory(page_directory);
     current_page_directory = page_directory;

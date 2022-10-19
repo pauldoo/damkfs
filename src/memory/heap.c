@@ -7,12 +7,12 @@ static const uint8_t in_use_bit = 0x1;
 static const uint8_t is_first_bit = 0x2;
 static const uint8_t is_last_bit = 0x4;
 
-static uint8_t* table_entry(struct heap* heap, int i) {
+static uint8_t* table_entry(heap* heap, int i) {
     ASSERT( 0 <= i && i < heap->block_count );
     return ((uint8_t*)(heap->blocks)) + i;
 }
 
-static int range_is_free(struct heap* heap, int begin, int end) {
+static int range_is_free(heap* heap, int begin, int end) {
     ASSERT( 0 <= begin && begin < end && end <= heap->block_count );
     for (int i = begin; i < end; i++) {
         if ((*(table_entry(heap, i)) & in_use_bit) == in_use_bit) {
@@ -23,7 +23,7 @@ static int range_is_free(struct heap* heap, int begin, int end) {
 }
 
 // marks [begin, end) blocks as allocated.
-static void mark_blocks_used(struct heap* heap, int begin, int end) {
+static void mark_blocks_used(heap* heap, int begin, int end) {
     ASSERT( 0 <= begin && begin < end && end <= heap->block_count );
     ASSERT(range_is_free(heap, begin, end));
     for (int i = begin; i < end; i++) {
@@ -39,7 +39,7 @@ static int ceil_div(int a, int b) {
     return (a+(b-1)) / b;
 }
 
-void heap_initialize(struct heap* heap, void* data, uint32_t length, uint32_t block_size) {
+void heap_initialize(heap* heap, void* data, uint32_t length, uint32_t block_size) {
     ASSERT( ((uint32_t)data) % block_size == 0 );
     memzero(data, length);
     heap->block_size = block_size;
@@ -55,7 +55,7 @@ void heap_initialize(struct heap* heap, void* data, uint32_t length, uint32_t bl
     mark_blocks_used(heap, 0, ceil_div(heap->block_count, heap->block_size));
 }
 
-void* heap_alloc(struct heap* heap, int block_count) {
+void* heap_alloc(heap* heap, int block_count) {
     ASSERT( heap->cursor >= 0 && heap->cursor < heap->block_count );
     const int orig_cursor = heap->cursor;
     do {
@@ -73,7 +73,7 @@ void* heap_alloc(struct heap* heap, int block_count) {
     ASSERT(0);
 }
 
-void heap_free(struct heap* heap, void* memory) {
+void heap_free(heap* heap, void* memory) {
     ASSERT( heap->blocks <= memory &&
         memory <= heap->blocks + (heap->block_size * (heap->block_count-1)));
     ASSERT( ( memory - heap->blocks ) % heap->block_size == 0 );

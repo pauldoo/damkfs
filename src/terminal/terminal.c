@@ -6,11 +6,11 @@ const int terminal_height = 25;
 static int terminal_x = 0;
 static int terminal_y = 0;
 
-struct video_data {
-    uint16_t data[25][80];
-};
+typedef struct video_data_t {
+    volatile uint16_t data[25][80];
+} video_data;
 
-static volatile struct video_data* const video_mem = (struct video_data*)(0xB8000);
+static video_data* const  video_mem = (video_data*)(0xB8000);
 
 static uint16_t make_char(char c, enum terminal_color fg, enum terminal_color bg) {
     return c | (bg << 12) | fg << 8;
