@@ -60,7 +60,7 @@ static void idt_set(int interrupt_number, void* address) {
 }
 
 static void idt_zero() {
-    terminal_print("Interrupt Zero!\n", White, Black);
+    dprint_str("Interrupt Zero!\n");
 }
 
 
@@ -88,7 +88,7 @@ void idt_init() {
 }
 
 void int21h_handler() {
-    terminal_print("Keyboard pressed!\n", Magenta, Black);
+    dprint_str("Keyboard pressed!\n");
     out_b(0x20, 0x20);
 }
 

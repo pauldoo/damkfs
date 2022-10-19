@@ -3,6 +3,8 @@
 #include "terminal/terminal.h"
 #include "memory/memory.h"
 
+#include <stdbool.h>
+
 static const uint8_t in_use_bit = 0x1;
 static const uint8_t is_first_bit = 0x2;
 static const uint8_t is_last_bit = 0x4;
@@ -12,14 +14,14 @@ static uint8_t* table_entry(heap* heap, int i) {
     return ((uint8_t*)(heap->blocks)) + i;
 }
 
-static int range_is_free(heap* heap, int begin, int end) {
+static bool range_is_free(heap* heap, int begin, int end) {
     ASSERT( 0 <= begin && begin < end && end <= heap->block_count );
     for (int i = begin; i < end; i++) {
         if ((*(table_entry(heap, i)) & in_use_bit) == in_use_bit) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // marks [begin, end) blocks as allocated.

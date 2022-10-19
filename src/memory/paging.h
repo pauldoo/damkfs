@@ -23,6 +23,8 @@ void page_directory_populate_linear(page_directory *page_directory, uint16_t fla
 
 void page_directory_switch(page_directory *page_directory);
 
+void page_set(page_directory* page_directory, void* address, uint32_t value);
+
 // kernel.asm
 void enable_paging();
 

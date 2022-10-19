@@ -71,3 +71,18 @@ void page_directory_switch(page_directory* page_directory)
     current_page_directory = page_directory;
 }
 
+void page_directory_indexof(void* address, int* directory_index_out, int* table_index_out) {
+    ASSERT((((uint32_t)address) % 4096) == 0)
+    ASSERT(directory_index_out != 0)
+    ASSERT(table_index_out != NULL)
+    (*table_index_out) = (((uint32_t)address) >> 12) & 0x3ff;  
+    (*directory_index_out) = (((uint32_t)address) >> 22) & 0x3ff;
+    ASSERT(((uint32_t)address) == (((*directory_index_out)*1024) + (*table_index_out)) * 4096)
+}
+
+void page_set(page_directory* page_directory, void* address, uint32_t value) {
+    int dir_index, table_index;
+    page_directory_indexof(address, &dir_index, &table_index);
+    page_table* pt = (page_table*)((page_directory->entry[dir_index]) & address_mask);
+    pt->entry[table_index] = value;
+}

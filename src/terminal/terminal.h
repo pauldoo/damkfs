@@ -24,14 +24,32 @@ enum terminal_color {
  White
 };
 
-void terminal_clear(enum terminal_color bg);
+typedef struct printer_t {
+  int x;
+  int y;
+  enum terminal_color fg;
+  enum terminal_color bg;
+} printer;
 
+// "default" printer (used by "dprint_*")
+extern printer default_printer;
+
+// Character by character access
 void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum terminal_color bg);
 
-void terminal_print(const char* s, enum terminal_color fg, enum terminal_color bg);
+// Stateful "printer"
+void print_clear(printer* p);
+void print_str(printer* p, const char* s);
+void print_dec(printer* p, uint32_t);
+void print_hex(printer* p, uint32_t);
 
-void terminal_print_dec(uint32_t, enum terminal_color fg, enum terminal_color bg);
-void terminal_print_hex(uint32_t, enum terminal_color fg, enum terminal_color bg);
+// Utils for default printer
+void dprint_clear();
+void dprint_str(const char* s);
+void dprint_dec(uint32_t v);
+void dprint_hex(uint32_t v);
+
+
 
 void halt() __attribute__ ((noreturn));
 

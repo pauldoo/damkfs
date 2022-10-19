@@ -3,19 +3,22 @@
 const int terminal_width = 80;
 const int terminal_height = 25;
 
-static int terminal_x = 0;
-static int terminal_y = 0;
-
 typedef struct video_data_t {
     volatile uint16_t data[25][80];
 } video_data;
 
 static video_data* const  video_mem = (video_data*)(0xB8000);
 
+printer default_printer = {
+    .x = 0,
+    .y = 0,
+    .fg = Light_Green,
+    .bg = Dark_Gray
+};
+
 static uint16_t make_char(char c, enum terminal_color fg, enum terminal_color bg) {
     return c | (bg << 12) | fg << 8;
 }
-
 
 void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum terminal_color bg) {
     if (0 <= x && x < terminal_width &&
@@ -25,51 +28,58 @@ void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum termin
     }
 }
 
-void terminal_clear(enum terminal_color bg) {
+
+void print_clear(printer* p) {
     for (int y = 0; y < terminal_height; y++) {
         for (int x = 0; x < terminal_width; x++) {
-            terminal_put_char(x, y, ' ', White, bg);
+            terminal_put_char(x, y, ' ', p->fg, p->bg);
         }
     }
-    terminal_x = 0;
-    terminal_y = 0;
+    p->x = 0;
+    p->y = 0;
 }
 
-static void terminal_print_char(char c, enum terminal_color fg, enum terminal_color bg) {
+static void print_char(printer* p, char c) {
+    ASSERT(p != 0)
+    ASSERT(p->x >= 0 && p->x < terminal_width)
+    ASSERT(p->y >= 0 && p->y < terminal_width)
+
     if (c != '\n') {
-        terminal_put_char(terminal_x, terminal_y, c, fg, bg);
-        terminal_x++;
+        terminal_put_char(p->x, p->y, c, p->fg, p->bg);
+        p->x++;
     }
 
-    if (c == '\n' || terminal_x >= terminal_width) {
-        terminal_x = 0;
+    if (c == '\n' || p->x >= terminal_width) {
+        p->x = 0;
 
-        terminal_y++;
-        if (terminal_y >= terminal_height) {
-            terminal_y = 0;
+        p->y++;
+        if (p->y >= terminal_height) {
+            p->y = 0;
         }
     }
 }
 
-void terminal_print(const char* s, enum terminal_color fg, enum terminal_color bg) {
+void print_str(printer* p, const char* s) {
     while (*s != 0) {
-        terminal_print_char(*s, fg, bg);
+        print_char(p, *s);
         s++;
     }
 }
 
 static void print_failure(const char* label, const char* expr, const char* file, int line, const char* func) {
-    terminal_print("\n", White, Red);
-    terminal_print(label, White, Red);
-    terminal_print(": ", White, Red);
-    terminal_print(expr, White, Red);
-    terminal_print(" failed\n", White, Red);
-    terminal_print(func, White, Red);
-    terminal_print(" (", White, Red);
-    terminal_print(file, White, Red);
-    terminal_print(":", White, Red);
-    terminal_print_dec(line, White, Red);
-    terminal_print(")\n", White, Red);
+    default_printer.fg = White;
+    default_printer.bg = Red;
+    dprint_str("\n");
+    dprint_str(label);
+    dprint_str(": ");
+    dprint_str(expr);
+    dprint_str(" failed\n");
+    dprint_str(func);
+    dprint_str(" (");
+    dprint_str(file);
+    dprint_str(":");
+    dprint_dec(line);
+    dprint_str(")\n");
 }
 
 void halt() {
@@ -87,26 +97,37 @@ void __assert_fail(const char* expr, const char* file, int line, const char* fun
     halt();
 }
 
-static void terminal_print_number_imp(
+static void print_number_imp(
+    printer* p,
     uint32_t num,
     int base,
-    const char* symbols,
-    enum terminal_color fg,
-    enum terminal_color bg
+    const char* symbols
 ) {
     if (num / base != 0) {
-        terminal_print_number_imp(num / base, base, symbols, fg, bg);
+        print_number_imp(p, num / base, base, symbols);
     }
-    terminal_print_char(symbols[num % base], fg, bg);
+    print_char(p, symbols[num % base]);
 }
 
 
-void terminal_print_dec(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
-    terminal_print_number_imp(num, 10, "0123456789", fg, bg);
+void print_dec(printer* p, uint32_t num) {
+    print_number_imp(p, num, 10, "0123456789");
 }
 
-void terminal_print_hex(uint32_t num, enum terminal_color fg, enum terminal_color bg) {
-    terminal_print("0x", fg, bg);
-    terminal_print_number_imp(num, 16, "0123456789abcdef", fg, bg);
+void print_hex(printer* p, uint32_t num) {
+    print_str(p, "0x");
+    print_number_imp(p, num, 16, "0123456789abcdef");
 }
 
+void dprint_clear() {
+    print_clear(&default_printer);
+}
+void dprint_str(const char* s) {
+    print_str(&default_printer, s);
+}
+void dprint_dec(uint32_t v) {
+    print_dec(&default_printer, v);
+}
+void dprint_hex(uint32_t v) {
+    print_hex(&default_printer, v);
+}
