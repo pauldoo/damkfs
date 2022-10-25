@@ -4,7 +4,7 @@
 #include "memory/heap.h"
 
 static void * const heap_base = ((void*)0x01000000); // starts at 16M
-static const size_t heap_size = 0x10000000; // is 256M long
+static const size_t heap_size = 0x1000000; // is 16M long
 
 static heap malloc_heap = {0};
 static heap page_heap = {0};

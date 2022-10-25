@@ -10,7 +10,7 @@ _start:
   nop
 
 bios_parameter_block:
-  times 33 db 0x90
+  times 33 db 0x00
 
 start:
   ; long jump sets code segment register

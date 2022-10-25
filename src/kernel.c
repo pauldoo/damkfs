@@ -6,6 +6,7 @@
 #include "memory/memory.h"
 #include "io/io.h"
 #include "memory/paging.h"
+#include "disk/disk.h"
 
 static void excercise_heap() {
     int* a = kmalloc(4);
@@ -62,49 +63,27 @@ void kernel_main() {
     dprint_str("Kernel page directory populated.\n");
     page_directory_switch(kernel_pd);
     dprint_str("Kernel page directory selected.\n");
-
-    // Temporary: use page tables to demonstrate aliasing
-
-    uint32_t* numberA = page_alloc(1);
-    uint32_t* numberB = page_alloc(1);
-    dprint_hex((uint32_t)numberA);
-    dprint_str("\n");
-    dprint_hex((uint32_t)numberB);
-    dprint_str("\n");
-
-    ASSERT( numberA != numberB );
-    page_set(kernel_pd, numberB, ((uint32_t)numberA) | paging_is_present | paging_is_writeable | paging_access_from_all);
-
-    *numberA = 10;
-    *numberB = 20;
-
-    dprint_dec(*numberA);
-    dprint_str("\n");
-    dprint_dec(*numberB);
-    dprint_str("\n");
-
     enable_paging();
     dprint_str("Paging enabled.\n");
-
-    dprint_dec(*numberA);
-    dprint_str("\n");
-    dprint_dec(*numberB);
-    dprint_str("\n");
-
-    *numberA = 30;
-
-    dprint_dec(*numberA);
-    dprint_str("\n");
-    dprint_dec(*numberB);
-    dprint_str("\n");
 
     // Enable interrupts
     idt_init();
 
-
-
     // Test
     excercise_heap();
+
+    uint8_t buf[512] = {0};
+    disk_read_sector(0, 1, buf);
+
+    dprint_hex(buf[0]);
+    dprint_str("\n");
+    dprint_hex(buf[1]);
+    dprint_str("\n");
+    dprint_hex(buf[2]);
+    dprint_str("\n");
+    dprint_hex(buf[3]);
+    dprint_str("\n");
+
 
     // Fin.
     dprint_str("Finished.\n");

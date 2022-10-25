@@ -8,7 +8,8 @@ FILES = \
   ./build/memory/paging.o \
   ./build/idt/idt.asm.o \
   ./build/idt/idt.o \
-  ./build/io/io.asm.o
+  ./build/io/io.asm.o \
+  ./build/disk/disk.o
 
 INCLUDES = -I./src
 FLAGS = \
@@ -42,9 +43,13 @@ clean:
 
 # Link the kernel
 
-./bin/kernel.bin: ./src/linker.ld $(FILES) | bindir
-	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o $@ \
-	  $(FILES)
+./bin/kernel.bin: ./src/linker.ld ./build/kernelfull.o | bindir
+	i686-elf-gcc $(FLAGS) -T ./src/linker.ld -o $@ ./build/kernelfull.o
+
+# Intermediate link is useful for GDB
+./build/kernelfull.o: $(FILES) | builddir
+	i686-elf-ld -g -relocatable -o $@ \
+	  $^
 
 # NASM builds
 
@@ -62,4 +67,4 @@ bindir:
 	mkdir -p bin
 
 builddir:
-	mkdir -p build build/terminal build/memory build/idt build/io
+	mkdir -p build build/terminal build/memory build/idt build/io build/disk
