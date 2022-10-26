@@ -16,11 +16,11 @@ printer default_printer = {
     .bg = Dark_Gray
 };
 
-static uint16_t make_char(char c, enum terminal_color fg, enum terminal_color bg) {
+static uint16_t make_char(char c, terminal_color fg, terminal_color bg) {
     return c | (bg << 12) | fg << 8;
 }
 
-void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum terminal_color bg) {
+void terminal_put_char(int x, int y, char c, terminal_color fg, terminal_color bg) {
     if (0 <= x && x < terminal_width &&
         0 <= y && y < terminal_height) {
 

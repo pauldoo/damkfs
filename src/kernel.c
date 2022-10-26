@@ -56,6 +56,11 @@ void kernel_main() {
     initialize_heaps();
     dprint_str("Heaps initialized.\n");
 
+    disk_init();
+
+    // Enable interrupts
+    idt_init();
+
     // Paging
     kernel_pd = page_directory_create();
     dprint_str("Kernel page directory allocated.\n");
@@ -66,14 +71,14 @@ void kernel_main() {
     enable_paging();
     dprint_str("Paging enabled.\n");
 
-    // Enable interrupts
-    idt_init();
+
+
 
     // Test
     excercise_heap();
 
     uint8_t buf[512] = {0};
-    disk_read_sector(0, 1, buf);
+    disk_read_sector(&default_disk, 0, 1, buf);
 
     dprint_hex(buf[0]);
     dprint_str("\n");

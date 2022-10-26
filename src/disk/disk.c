@@ -3,9 +3,15 @@
 #include "io/io.h"
 #include "terminal/terminal.h"
 
+const disk default_disk = {
+    .type = Real,
+    .sector_size = 512
+};
+
 // https://wiki.osdev.org/ATA_read/write_sectors
 
-int disk_read_sector(uint32_t start, uint32_t sector_count, void* output_buffer) {
+int disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
+    ASSERT(disk == &default_disk);
     ASSERT(sector_count >= 1 && sector_count <= 255);
     ASSERT(output_buffer != 0);
 
@@ -22,11 +28,14 @@ int disk_read_sector(uint32_t start, uint32_t sector_count, void* output_buffer)
         while (!((status = in_b(0x1F7)) & 0x08)) {
         }
 
-        for (int i = 0; i < 256; i++) {
+        for (uint32_t i = 0; i < (disk->sector_size/2); i++) {
             *ptr = in_w(0x1F0);
             ptr += 1;
         }
     }
 
     return 0;
+}
+
+void disk_init() {
 }

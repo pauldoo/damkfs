@@ -5,7 +5,7 @@
 extern const int terminal_width;
 extern const int terminal_height;
 
-enum terminal_color {
+typedef enum terminal_color_t {
  Black = 0,
  Blue,
  Green,
@@ -22,20 +22,20 @@ enum terminal_color {
  Light_Magenta,
  Yellow,
  White
-};
+} terminal_color;
 
 typedef struct printer_t {
   int x;
   int y;
-  enum terminal_color fg;
-  enum terminal_color bg;
+  terminal_color fg;
+  terminal_color bg;
 } printer;
 
 // "default" printer (used by "dprint_*")
 extern printer default_printer;
 
 // Character by character access
-void terminal_put_char(int x, int y, char c, enum terminal_color fg, enum terminal_color bg);
+void terminal_put_char(int x, int y, char c, terminal_color fg, terminal_color bg);
 
 // Stateful "printer"
 void print_clear(printer* p);

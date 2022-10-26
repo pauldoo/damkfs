@@ -88,8 +88,11 @@ void idt_init() {
 }
 
 void int21h_handler() {
-    dprint_str("Keyboard pressed!\n");
-    out_b(0x20, 0x20);
+    uint8_t c = in_b(0x60);
+    dprint_str("Keyboard pressed: ");
+    dprint_hex(c);
+    dprint_str("\n");
+    out_b(0x20, 0x20); // acknowledge
 }
 
 void no_interrupt_handler() {
