@@ -30,6 +30,9 @@ all: ./bin/os.bin
 ./bin/os.bin: ./bin/boot.bin ./bin/kernel.bin | bindir
 	rm -f $@
 	dd if=./bin/boot.bin >> $@
+	# Test that the kernel is smaller than 100 sectors,
+	# as this is all we load into memory (see boot.asm).
+	test $(shell wc -c < bin/kernel.bin) -lt 51200
 	dd if=./bin/kernel.bin >> $@
 	dd if=/dev/zero bs=512 count=100 >> $@
 

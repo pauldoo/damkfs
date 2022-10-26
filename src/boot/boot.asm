@@ -88,7 +88,7 @@ print:
 [BITS 32]
 load32:
   mov eax, 1 ; start sector
-  mov ecx, 100 ; number of sectors to read
+  mov ecx, 100 ; number of sectors to read (see test in Makefile)
   mov edi, 0x00100000 ; location in ram to read into
   call ata_lba_read
   jmp CODE_SEG:0x00100000
