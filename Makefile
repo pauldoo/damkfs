@@ -21,6 +21,7 @@ FLAGS = \
   -nostartfiles \
   -nodefaultlibs \
   -Wall \
+  -Wextra \
   -Werror \
   -Iinc
 

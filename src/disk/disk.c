@@ -17,7 +17,7 @@ int disk_read_sector(uint32_t start, uint32_t sector_count, void* output_buffer)
     out_b(0x1F7, 0x20);
 
     uint16_t* ptr = output_buffer;
-    for (int b = 0; b < sector_count; b++) {
+    for (uint32_t b = 0; b < sector_count; b++) {
         uint8_t status;
         while (!((status = in_b(0x1F7)) & 0x08)) {
         }
