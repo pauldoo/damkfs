@@ -3,46 +3,36 @@
 My code and notes from following the Udemy course [developing a multithreaded kernel from scratch](https://www.udemy.com/course/developing-a-multithreaded-kernel-from-scratch/).
 
 
-# Tools
 
-`dnf install qemu-system-x86 nasm wine`
+# Development
 
-To install emu8086: `wine setup.exe`
+## Building
 
-To run emu8086: `wine 'c:/emu8086/emu8086.exe'`
+1. Enter the cross compiler container: `./enter.sh`
+2. Within the container: `./build.sh`
 
-# Building
+## Running
 
-`nasm -f bin -o ./boot.bin ./boot.asm`
+`./run.sh`
+
+
+Or to attach a debugger:
+1. `./run.sh` (will pause on start)
+2. From a different shell: `./attach.sh`
 
 ## Disassemble
 
 `ndisasm ./boot.bin`
 
-
-# Running
-
-## QEMU
-
-`qemu-system-x86_64 -m 1G -drive format=raw,file=./bin/os.bin`
-
-## GDB
-
-In `gdb`:
-
-```
-add-symbol-file build/kernelfull.o 0x00100000
-
-break _start
-
-target remote | qemu-system-x86_64 -m 1G -drive format=raw,file=./bin/os.bin -S -gdb stdio
-```
+## GDB cheatsheet
 
 ```
 layout asm
 
 info registers
 ```
+
+# Resources
 
 ## GCC cross compiler
 
@@ -52,12 +42,9 @@ Docker container seems easiest:
 
 https://hub.docker.com/r/joshwyant/gcc-cross
 
-Enter container: `./enter.sh`
-
-Inside the container: `./build.sh`
 
 
-# Links
+## Links
 
 https://github.com/nibblebits/PeachOS
 
