@@ -7,6 +7,7 @@
 #include "io/io.h"
 #include "memory/paging.h"
 #include "disk/disk.h"
+#include "fs/pparser.h"
 
 static void excercise_heap() {
     int* a = kmalloc(4);
@@ -89,6 +90,15 @@ void kernel_main() {
     dprint_hex(buf[3]);
     dprint_str("\n");
 
+    // Path parsing test
+    fs_path* const path = path_parse("/flim/flam/flom");
+    for (fs_path* p = path; p != 0; p = p->next) {
+        dprint_str("'");
+        dprint_str(p->part);
+        dprint_str("'");
+        dprint_str("\n");
+    }
+    path_free(path);
 
     // Fin.
     dprint_str("Finished.\n");

@@ -9,7 +9,8 @@ FILES = \
   ./build/idt/idt.asm.o \
   ./build/idt/idt.o \
   ./build/io/io.asm.o \
-  ./build/disk/disk.o
+  ./build/disk/disk.o \
+  ./build/fs/pparser.o
 
 INCLUDES = -I./src
 FLAGS = \
@@ -71,4 +72,4 @@ bindir:
 	mkdir -p bin
 
 builddir:
-	mkdir -p build build/terminal build/memory build/idt build/io build/disk
+	mkdir -p build build/terminal build/memory build/idt build/io build/disk build/fs

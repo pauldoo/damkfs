@@ -75,7 +75,7 @@ void* heap_alloc(heap* heap, uint32_t block_count) {
     ASSERT(0);
 }
 
-void heap_free(heap* heap, void* memory) {
+void heap_free(heap* heap, const void* memory) {
     ASSERT( heap->blocks <= memory &&
         memory <= heap->blocks + (heap->block_size * (heap->block_count-1)));
     ASSERT( ( memory - heap->blocks ) % heap->block_size == 0 );

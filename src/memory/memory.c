@@ -42,7 +42,7 @@ void* kcalloc(size_t len) {
     return result;
 }
 
-void kfree(void* p) {
+void kfree(const void* p) {
     return heap_free(&malloc_heap, p);
 }
 
@@ -62,7 +62,7 @@ void* page_calloc(int page_count) {
     return result;
 }
 
-void page_free(void* p) {
+void page_free(const void* p) {
     return heap_free(
         &page_heap,
         p);

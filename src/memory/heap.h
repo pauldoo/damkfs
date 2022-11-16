@@ -14,4 +14,4 @@ void heap_initialize(heap* heap, void* data, uint32_t length, uint32_t block_siz
 
 void* heap_alloc(heap* heap, uint32_t block_count);
 
-void heap_free(heap* heap, void* memory);
+void heap_free(heap* heap, const void* memory);

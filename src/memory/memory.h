@@ -13,10 +13,10 @@ void* kmalloc(size_t len);
 
 void* kcalloc(size_t len);
 
-void kfree(void* p);
+void kfree(const void* p);
 
 void* page_alloc(int page_count);
 
 void* page_calloc(int page_count);
 
-void page_free(void* p);
+void page_free(const void* p);
