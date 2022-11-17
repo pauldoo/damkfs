@@ -8,6 +8,7 @@
 #include "memory/paging.h"
 #include "disk/disk.h"
 #include "fs/pparser.h"
+#include "fs/stream.h"
 
 static void excercise_heap() {
     int* a = kmalloc(4);
@@ -81,6 +82,7 @@ void kernel_main() {
     uint8_t buf[512] = {0};
     disk_read_sector(&default_disk, 0, 1, buf);
 
+    dprint_str("A:\n");
     dprint_hex(buf[0]);
     dprint_str("\n");
     dprint_hex(buf[1]);
@@ -88,6 +90,21 @@ void kernel_main() {
     dprint_hex(buf[2]);
     dprint_str("\n");
     dprint_hex(buf[3]);
+    dprint_str("\n");
+
+    // Disk stream test
+    istream* stream = istream_buffer(istream_raw_disk(&default_disk, 0));
+    uint8_t small_buf[4] = {0};
+    istream_read(stream, 4, small_buf);
+    istream_free(stream);
+    dprint_str("B:\n");
+    dprint_hex(small_buf[0]);
+    dprint_str("\n");
+    dprint_hex(small_buf[1]);
+    dprint_str("\n");
+    dprint_hex(small_buf[2]);
+    dprint_str("\n");
+    dprint_hex(small_buf[3]);
     dprint_str("\n");
 
     // Path parsing test

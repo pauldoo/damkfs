@@ -10,7 +10,7 @@ const disk default_disk = {
 
 // https://wiki.osdev.org/ATA_read/write_sectors
 
-int disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
+void disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
     ASSERT(disk == &default_disk);
     ASSERT(sector_count >= 1 && sector_count <= 255);
     ASSERT(output_buffer != 0);
@@ -33,8 +33,6 @@ int disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, vo
             ptr += 1;
         }
     }
-
-    return 0;
 }
 
 void disk_init() {

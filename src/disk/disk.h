@@ -12,6 +12,6 @@ typedef struct disk_t {
 
 extern const disk default_disk;
 
-int disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer);
+void disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer);
 
 void disk_init();

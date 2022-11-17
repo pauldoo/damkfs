@@ -10,7 +10,8 @@ FILES = \
   ./build/idt/idt.o \
   ./build/io/io.asm.o \
   ./build/disk/disk.o \
-  ./build/fs/pparser.o
+  ./build/fs/pparser.o \
+  ./build/fs/stream.o
 
 INCLUDES = -I./src
 FLAGS = \
