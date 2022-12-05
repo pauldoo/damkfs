@@ -7,10 +7,13 @@
 
 typedef void (*StreamFree)(istream*);
 typedef uint32_t (*StreamRead)(istream*, uint32_t, void*);
+typedef void (*StreamSeek)(istream*, uint64_t);
 
 struct istream_vtable_t {
     StreamFree free;
     StreamRead read_partial;
+    StreamSeek seek;
+    uint32_t seek_granularity;
 };
 
 typedef struct istreamdisk_t {
@@ -29,19 +32,42 @@ typedef struct istreambuffer_t {
 
 static void istream_raw_disk_free(istream* stream);
 static uint32_t istream_raw_disk_read_partial(istream* stream, uint32_t length, void* output);
+static void istream_raw_disk_seek(istream* stream, uint64_t offset);
 
 static void istream_buffer_free(istream* stream);
 static uint32_t istream_buffer_read_partial(istream* stream, uint32_t length, void* output);
+static void istream_buffer_seek(istream* stream, uint64_t offset);
 
 const istream_vtable raw_disk_vtable = {
     .free = istream_raw_disk_free,
-    .read_partial = istream_raw_disk_read_partial
+    .read_partial = istream_raw_disk_read_partial,
+    .seek = istream_raw_disk_seek,
+    .seek_granularity = 4096
 };
 
 const istream_vtable buffer_vtable = {
     .free = istream_buffer_free,
-    .read_partial = istream_buffer_read_partial
+    .read_partial = istream_buffer_read_partial,
+    .seek = istream_buffer_seek,
+    .seek_granularity = 1
 };
+
+static uint64_t u64mod(uint64_t x, uint32_t y) {
+    ASSERT( y > 0 );
+    ASSERT( (y & (y-1)) == 0 );
+    return x & (y-1);
+}
+
+static uint64_t u64div(uint64_t x, uint32_t y) {
+    ASSERT( y > 0 );
+    ASSERT( (y & (y-1)) == 0 );
+    int s = 0;
+    while (y > 0) {
+        s += 1;
+        y /= 2;
+    }
+    return x >> s;
+}
 
 static void istream_raw_disk_free(istream* stream) {
     ASSERT(stream != 0);
@@ -61,10 +87,18 @@ static uint32_t istream_raw_disk_read_partial(istream* stream, uint32_t length, 
     return length; // TK: EOF disk?
 }
 
-istream* istream_raw_disk(const disk* disk, uint32_t start_sector) {
+static void istream_raw_disk_seek(istream* stream, uint64_t offset) {
+    ASSERT(stream != 0);
+    ASSERT(stream->vtable == &raw_disk_vtable);
+    istreamdisk* db = (istreamdisk*)stream;
+    ASSERT(u64mod(offset, db->disk->sector_size) == 0);
+    db->next_sector = u64div(offset, db->disk->sector_size);
+}
+
+istream* istream_raw_disk(const disk* disk) {
     istreamdisk* result = kcalloc(sizeof(istreamdisk));
     result->disk = disk;
-    result->next_sector = start_sector;
+    result->next_sector = 0;
     result->base.vtable = &raw_disk_vtable;
     ASSERT( (void*)&(result->base) == (void*)result );
     return &(result->base);
@@ -105,6 +139,25 @@ static uint32_t istream_buffer_read_partial(istream* stream, const uint32_t leng
     return bytes_read;
 }
 
+static void istream_buffer_seek(istream* stream, uint64_t offset) {
+    ASSERT(stream != 0);
+    ASSERT(stream->vtable == &buffer_vtable);
+    istreambuffer* const sb = (istreambuffer*)stream;
+
+    sb->next = 0;
+    sb->end = 0;
+
+    uint32_t fragment_length = u64mod(offset, sb->delegate->vtable->seek_granularity);
+    istream_seek(sb->delegate, offset - fragment_length);
+    uint8_t discard_buffer[128] = { 0 };
+
+    while (fragment_length != 0) {
+        const uint32_t read_count = (fragment_length > 128) ? 128 : fragment_length;
+        istream_read(stream, read_count, discard_buffer);
+        fragment_length -= read_count;
+    }
+}
+
 istream* istream_buffer(istream* delegate) {
     ASSERT(delegate != 0);
     istreambuffer* result = kcalloc(sizeof(istreambuffer));
@@ -123,6 +176,11 @@ uint32_t istream_read_partial(istream* stream, uint32_t length, void* output) {
 void istream_read(istream* stream, uint32_t length, void* output) {
     uint32_t bytes_read = istream_read_partial(stream, length, output);
     ASSERT(bytes_read == length);
+}
+
+void istream_seek(istream* stream, uint64_t offset) {
+    ASSERT(u64mod(offset, stream->vtable->seek_granularity) == 0);
+    stream->vtable->seek(stream, offset);
 }
 
 void istream_free(istream* stream) {

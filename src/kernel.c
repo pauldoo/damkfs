@@ -93,7 +93,8 @@ void kernel_main() {
     dprint_str("\n");
 
     // Disk stream test
-    istream* stream = istream_buffer(istream_raw_disk(&default_disk, 0));
+    istream* stream = istream_buffer(istream_raw_disk(&default_disk));
+    istream_seek(stream, 0);
     uint8_t small_buf[4] = {0};
     istream_read(stream, 4, small_buf);
     istream_free(stream);

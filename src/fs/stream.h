@@ -12,7 +12,7 @@ typedef struct istream_t {
 
 // Create a stream reading sectors from the disk
 // Reads to this stream must be multiples of the sector size.
-istream* istream_raw_disk(const disk* disk, uint32_t start_sector);
+istream* istream_raw_disk(const disk* disk);
 
 // Create a stream which buffers reads to an
 // underlying stream.  Reads can be arbitary
@@ -26,6 +26,8 @@ void istream_read(istream*, uint32_t length, void* output);
 // Like istream_read, but returns the number of
 // bytes read (which is only different at EOF).
 uint32_t istream_read_partial(istream*, uint32_t length, void* output);
+
+void istream_seek(istream*, uint64_t offset);
 
 // Close/release/free a stream.
 void istream_free(istream*);
