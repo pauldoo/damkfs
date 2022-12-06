@@ -37,7 +37,7 @@ all: ./bin/os.bin
 	# as this is all we load into memory (see boot.asm).
 	test $(shell wc -c < bin/kernel.bin) -lt 51200
 	dd if=./bin/kernel.bin >> $@
-	dd if=/dev/zero bs=512 count=100 >> $@
+	dd if=/dev/zero bs=512000 count=1000 >> $@
 
 clean:
 	rm -rf ./bin ./build
