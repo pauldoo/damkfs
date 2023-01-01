@@ -11,9 +11,11 @@ struct bdev_t;
 typedef struct bdev_t bdev;
 
 typedef void (*BdevRead)(bdev*, uint32_t, uint32_t, void*);
+typedef void (*BdevClose)(bdev*);
 
 struct bdev_vtable_t {
     BdevRead read;
+    BdevClose close;
 };
 
 struct bdev_t {
@@ -24,3 +26,4 @@ struct bdev_t {
 
 void bdev_read(bdev*, uint32_t start_block, uint32_t block_count, void* output);
 
+void bdev_close(bdev*);

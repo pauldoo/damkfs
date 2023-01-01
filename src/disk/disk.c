@@ -5,9 +5,11 @@
 #include "terminal/terminal.h"
 
 static void disk_read_sector(bdev* dev, uint32_t start, uint32_t sector_count, void* output_buffer);
+static void disk_close(bdev* dev);
 
 const bdev_vtable disk_vtable = {
-    .read = disk_read_sector
+    .read = disk_read_sector,
+    .close = disk_close
 };
 
 typedef struct disk_bdev_t {
@@ -25,8 +27,9 @@ bdev* const default_disk = &(default_disk_bdev.base);
 
 // https://wiki.osdev.org/ATA_read/write_sectors
 
-static void disk_read_sector(bdev* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
-    ASSERT(disk->vtable == &disk_vtable);
+static void disk_read_sector(bdev* dev, uint32_t start, uint32_t sector_count, void* output_buffer) {
+    ASSERT(dev->vtable == &disk_vtable);
+    disk_bdev* disk = (disk_bdev*)dev;
     ASSERT(sector_count >= 1 && sector_count <= 255);
     ASSERT(output_buffer != 0);
 
@@ -43,10 +46,13 @@ static void disk_read_sector(bdev* disk, uint32_t start, uint32_t sector_count, 
         while (!((status = in_b(0x1F7)) & 0x08)) {
         }
 
-        for (uint32_t i = 0; i < (disk->block_size/2); i++) {
+        for (uint32_t i = 0; i < (disk->base.block_size/2); i++) {
             *ptr = in_w(0x1F0);
             ptr += 1;
         }
     }
 }
 
+static void disk_close(bdev* disk) {
+    ASSERT(disk->vtable == &disk_vtable);
+}
