@@ -58,8 +58,6 @@ void kernel_main() {
     initialize_heaps();
     dprint_str("Heaps initialized.\n");
 
-    disk_init();
-
     // Enable interrupts
     idt_init();
 
@@ -80,7 +78,8 @@ void kernel_main() {
     excercise_heap();
 
     uint8_t buf[512] = {0};
-    disk_read_sector(&default_disk, 0, 1, buf);
+    bdev_read(default_disk, 1, 1, buf);
+    ASSERT(default_disk->block_size == 512);
 
     dprint_str("A:\n");
     dprint_hex(buf[0]);
@@ -93,8 +92,8 @@ void kernel_main() {
     dprint_str("\n");
 
     // Disk stream test
-    istream* stream = istream_buffer(istream_raw_disk(&default_disk));
-    istream_seek(stream, 0);
+    istream* stream = istream_buffer(istream_bdev(default_disk));
+    istream_seek(stream, 512);
     uint8_t small_buf[4] = {0};
     istream_read(stream, 4, small_buf);
     istream_free(stream);

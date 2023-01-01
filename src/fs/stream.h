@@ -1,5 +1,5 @@
 #pragma once
-#include "disk/disk.h"
+#include "disk/bdev.h"
 
 #include <stdint.h>
 
@@ -10,9 +10,9 @@ typedef struct istream_t {
     const istream_vtable* vtable;
 } istream;
 
-// Create a stream reading sectors from the disk
-// Reads to this stream must be multiples of the sector size.
-istream* istream_raw_disk(const disk* disk);
+// Create a stream reading sectors from a block device
+// Reads to this stream must be multiples of block size.
+istream* istream_bdev(bdev* dev);
 
 // Create a stream which buffers reads to an
 // underlying stream.  Reads can be arbitary
@@ -27,7 +27,7 @@ void istream_read(istream*, uint32_t length, void* output);
 // bytes read (which is only different at EOF).
 uint32_t istream_read_partial(istream*, uint32_t length, void* output);
 
-void istream_seek(istream*, uint64_t offset);
+void istream_seek(istream*, uint32_t offset);
 
 // Close/release/free a stream.
 void istream_free(istream*);

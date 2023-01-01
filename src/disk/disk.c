@@ -1,17 +1,32 @@
 #include "disk.h"
 
+#include "disk/bdev.h"
 #include "io/io.h"
 #include "terminal/terminal.h"
 
-const disk default_disk = {
-    .type = Real,
-    .sector_size = 512
+static void disk_read_sector(bdev* dev, uint32_t start, uint32_t sector_count, void* output_buffer);
+
+const bdev_vtable disk_vtable = {
+    .read = disk_read_sector
 };
+
+typedef struct disk_bdev_t {
+    bdev base;
+} disk_bdev;
+
+disk_bdev default_disk_bdev = {
+    .base = {
+        .vtable = &disk_vtable,
+        .block_size = 512
+    }
+};
+
+bdev* const default_disk = &(default_disk_bdev.base);
 
 // https://wiki.osdev.org/ATA_read/write_sectors
 
-void disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
-    ASSERT(disk == &default_disk);
+static void disk_read_sector(bdev* disk, uint32_t start, uint32_t sector_count, void* output_buffer) {
+    ASSERT(disk->vtable == &disk_vtable);
     ASSERT(sector_count >= 1 && sector_count <= 255);
     ASSERT(output_buffer != 0);
 
@@ -28,12 +43,10 @@ void disk_read_sector(const disk* disk, uint32_t start, uint32_t sector_count, v
         while (!((status = in_b(0x1F7)) & 0x08)) {
         }
 
-        for (uint32_t i = 0; i < (disk->sector_size/2); i++) {
+        for (uint32_t i = 0; i < (disk->block_size/2); i++) {
             *ptr = in_w(0x1F0);
             ptr += 1;
         }
     }
 }
 
-void disk_init() {
-}
