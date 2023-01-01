@@ -6,5 +6,5 @@ podman run \
   --rm \
   --userns=keep-id \
   --volume (pwd):(pwd):Z \
-  gcc-cross \
+  joshwyant/gcc-cross \
   /usr/bin/bash -c "cd "(pwd)" && bash -i"
