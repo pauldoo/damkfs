@@ -4,10 +4,14 @@
 #include "io/io.h"
 #include "terminal/terminal.h"
 
+static uint32_t disk_block_count(bdev* dev);
+static uint32_t disk_logical_length(bdev* dev);
 static void disk_read_sector(bdev* dev, uint32_t start, uint32_t sector_count, void* output_buffer);
 static void disk_close(bdev* dev);
 
 const bdev_vtable disk_vtable = {
+    .block_count = disk_block_count,
+    .logical_length = disk_logical_length,
     .read = disk_read_sector,
     .close = disk_close
 };
@@ -26,6 +30,16 @@ disk_bdev default_disk_bdev = {
 bdev* const default_disk = &(default_disk_bdev.base);
 
 // https://wiki.osdev.org/ATA_read/write_sectors
+
+static uint32_t disk_block_count(bdev* dev) {
+    ASSERT(dev->vtable == &disk_vtable);
+    ASSERT(0); // Not implemented.
+}
+
+static uint32_t disk_logical_length(bdev* dev) {
+    ASSERT(dev->vtable == &disk_vtable);
+    ASSERT(0); // Not implemented.
+}
 
 static void disk_read_sector(bdev* dev, uint32_t start, uint32_t sector_count, void* output_buffer) {
     ASSERT(dev->vtable == &disk_vtable);

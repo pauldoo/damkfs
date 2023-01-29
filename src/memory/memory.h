@@ -5,6 +5,8 @@
 
 void memzero(void* p, size_t len);
 
+void memcpy(const void* src, void* dst, size_t len);
+
 int strlen(const char* str);
 
 void initialize_heaps();

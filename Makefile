@@ -11,8 +11,11 @@ FILES = \
   ./build/io/io.asm.o \
   ./build/disk/bdev.o \
   ./build/disk/disk.o \
+  ./build/fs/fat16.o \
+  ./build/fs/filesystem.o \
   ./build/fs/pparser.o \
-  ./build/fs/stream.o
+  ./build/fs/stream.o \
+  ./build/util/list.o
 
 INCLUDES = -I./src
 FLAGS = \
@@ -74,4 +77,4 @@ bindir:
 	mkdir -p bin
 
 builddir:
-	mkdir -p build build/terminal build/memory build/idt build/io build/disk build/fs
+	mkdir -p build build/terminal build/memory build/idt build/io build/disk build/fs build/util

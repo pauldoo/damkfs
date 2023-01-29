@@ -9,6 +9,8 @@
 #include "disk/disk.h"
 #include "fs/pparser.h"
 #include "fs/stream.h"
+#include "fs/filesystem.h"
+#include "fs/fat16.h"
 
 static void excercise_heap() {
     int* a = kmalloc(4);
@@ -77,45 +79,13 @@ void kernel_main() {
     // Test
     excercise_heap();
 
-    uint8_t buf[512] = {0};
-    bdev_read(default_disk, 1, 1, buf);
-    ASSERT(default_disk->block_size == 512);
-
-    dprint_str("A:\n");
-    dprint_hex(buf[0]);
-    dprint_str("\n");
-    dprint_hex(buf[1]);
-    dprint_str("\n");
-    dprint_hex(buf[2]);
-    dprint_str("\n");
-    dprint_hex(buf[3]);
-    dprint_str("\n");
-
-    // Disk stream test
-    istream* stream = istream_buffer(istream_bdev(default_disk));
-    istream_seek(stream, 512);
-    uint8_t small_buf[4] = {0};
-    istream_read(stream, 4, small_buf);
-    istream_free(stream);
-    dprint_str("B:\n");
-    dprint_hex(small_buf[0]);
-    dprint_str("\n");
-    dprint_hex(small_buf[1]);
-    dprint_str("\n");
-    dprint_hex(small_buf[2]);
-    dprint_str("\n");
-    dprint_hex(small_buf[3]);
-    dprint_str("\n");
-
-    // Path parsing test
-    fs_path* const path = path_parse("/flim/flam/flom");
-    for (fs_path* p = path; p != 0; p = p->next) {
-        dprint_str("'");
-        dprint_str(p->part);
-        dprint_str("'");
-        dprint_str("\n");
-    }
+    //
+    filesystem* fs = fat16_open(default_disk);
+    fs_path* path = path_parse("/HELLO.TXT");
+    bdev* file = filesystem_open_file(fs, path);
     path_free(path);
+    bdev_close(file);
+    filesystem_close(fs);
 
     // Fin.
     dprint_str("Finished.\n");

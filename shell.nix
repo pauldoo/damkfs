@@ -2,5 +2,6 @@
   pkgs.mkShell {
     buildInputs = [
       pkgs.qemu
+      pkgs.nasm
     ];
   }

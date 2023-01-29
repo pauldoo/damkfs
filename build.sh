@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env fish
 
-# Expects to run inside the gcc-cross container.
+set fish_trace on
 
-set -e
-set -x
-
-export PREFIX="/usr/local/cross"
-export TARGET="i686-elf"
-
-make clean
-
-make
+podman run \
+#  --interactive \
+#  --tty \
+  --rm \
+  --userns=keep-id \
+  --volume (pwd):(pwd):Z \
+  joshwyant/gcc-cross \
+  /usr/bin/bash -c "cd "(pwd)" && ./build-impl.sh"
+#  /usr/bin/bash -c "cd "(pwd)" && bash -i"

@@ -8,8 +8,7 @@ My code and notes from following the Udemy course [developing a multithreaded ke
 
 ## Building
 
-1. Enter the cross compiler container: `./enter.sh`
-2. Within the container: `./build.sh`
+`./build.sh ;and ./populate.sh`
 
 ## Running
 

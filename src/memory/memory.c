@@ -10,10 +10,20 @@ static heap malloc_heap = {0};
 static heap page_heap = {0};
 
 void memzero(void* p, size_t len) {
+    ASSERT(p != 0);
     for (size_t i = 0; i < len; i++) {
-        ((char*)p)[i] = 0;
+        ((uint8_t*)p)[i] = 0;
     }
 }
+
+void memcpy(const void* src, void* dst, size_t len) {
+    ASSERT(src != 0);
+    ASSERT(dst != 0);
+    for (size_t i = 0; i < len; i++) {
+        ((uint8_t*)dst)[i] = ((uint8_t*)src)[i];
+    }
+}
+
 
 int strlen(const char* str) {
     int len = 0;
