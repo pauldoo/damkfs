@@ -39,6 +39,7 @@ void terminal_put_char(int x, int y, char c, terminal_color fg, terminal_color b
 
 // Stateful "printer"
 void print_clear(printer* p);
+void print_char(printer* p, char c);
 void print_str(printer* p, const char* s);
 void print_dec(printer* p, uint32_t);
 void print_hex(printer* p, uint32_t);

@@ -24,7 +24,7 @@ struct bdev_vtable_t {
 
 struct bdev_t {
     const bdev_vtable* vtable;
-    const uint16_t block_size;    
+    uint16_t block_size;
 };
 
 

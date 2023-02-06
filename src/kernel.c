@@ -51,6 +51,31 @@ static void excercise_heap() {
 
 static page_directory* kernel_pd = 0;
 
+static void dump_file(filesystem* fs, const char* filename) {
+    dprint_str("Reading: ");
+    dprint_str(filename);
+    dprint_str("\n");
+
+    fs_path* path = path_parse(filename);
+    bdev* file = filesystem_open_file(fs, path);
+    path_free(path);
+
+    dprint_str("File opened, length: ");
+    dprint_dec(bdev_logical_length(file));
+    dprint_str("\n");
+
+    uint8_t* buf = kmalloc(bdev_block_count(file) * file->block_size);
+    bdev_read(file, 0, bdev_block_count(file), buf);
+    for (uint32_t i = 0; i < bdev_logical_length(file); i++) {
+        print_char(&default_printer, buf[i]);
+    }
+    kfree(buf);
+
+    dprint_str("EOF\n");
+
+    bdev_close(file);
+}
+
 void kernel_main() {
     // Hello
     dprint_clear(); 
@@ -79,12 +104,9 @@ void kernel_main() {
     // Test
     excercise_heap();
 
-    //
+    // Test FS
     filesystem* fs = fat16_open(default_disk);
-    fs_path* path = path_parse("/HELLO.TXT");
-    bdev* file = filesystem_open_file(fs, path);
-    path_free(path);
-    bdev_close(file);
+    dump_file(fs, "/HELLO.TXT");
     filesystem_close(fs);
 
     // Fin.

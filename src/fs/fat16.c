@@ -1,5 +1,6 @@
 #include "fat16.h"
 
+#include "disk/bdev_slice.h"
 #include "memory/memory.h"
 #include "terminal/terminal.h"
 #include "util/list.h"
@@ -51,6 +52,13 @@ typedef struct fs_fat16_t {
     fat16_header header;
 } fs_fat16;
 
+//
+typedef struct cluster_chain_bdev_t {
+    bdev base;
+    fs_fat16* f16;
+    list* clusters;
+} cluster_chain_bdev;
+
 static const int DIRS_PER_SECTOR = 512 / sizeof(fat16_directory_entry);
 
 static bdev* fat16_open_file(filesystem*, fs_path*);
@@ -73,6 +81,18 @@ static uint32_t root_dir_sector_count(fs_fat16* fs) {
 
 static uint32_t root_dir_sector_start(fs_fat16* fs) {
     return fs->header.reserved_sector_count + (fs->header.sectors_per_fat * fs->header.fat_count);
+}
+
+static uint32_t first_data_sector(fs_fat16* fs) {
+    return fs->header.reserved_sector_count + (fs->header.sectors_per_fat * fs->header.fat_count) + root_dir_sector_count(fs);
+}
+
+static uint32_t first_fat_sector(fs_fat16* fs) {
+    return fs->header.reserved_sector_count;
+}
+
+static uint32_t data_clusters(fs_fat16* fs) {
+    return (total_sectors(fs) - first_data_sector(fs)) / fs->header.sectors_per_cluster;
 }
 
 static bool name_matches(const char* name, fat16_directory_entry* entry) {
@@ -109,14 +129,13 @@ static bool name_matches(const char* name, fat16_directory_entry* entry) {
     return true;
 }
 
-static fat16_directory_entry traverse(fs_fat16* f16, list* directory_sectors, fs_path* path) {
+static fat16_directory_entry traverse(fs_fat16* f16, bdev* directory, fs_path* path) {
     ASSERT(f16->header.bytes_per_sector == 512);
+    ASSERT(directory->block_size == 512);
 
-    for (uint32_t i = 0; i < list_size(directory_sectors); i++) {
-        uint32_t sector = list_at(directory_sectors, i);
+    for (uint32_t i = 0; i < bdev_block_count(directory); i++) {
         fat16_directory_entry dirs[DIRS_PER_SECTOR];
-        ASSERT(sector < total_sectors(f16));
-        bdev_read(f16->dev, sector, 1, &(dirs[0]));
+        bdev_read(directory, i, 1, &(dirs[0]));
         
         for (int j = 0; j < DIRS_PER_SECTOR; j++) {
             if (dirs[j].filename_8[0] == 0) {
@@ -133,6 +152,45 @@ static fat16_directory_entry traverse(fs_fat16* f16, list* directory_sectors, fs
     ASSERT(0);
 }
 
+static uint16_t next_cluster(fs_fat16* f16, uint16_t cluster_index) {
+    ASSERT( f16->header.bytes_per_sector == 512 );
+    ASSERT( cluster_index < data_clusters(f16) );
+
+    uint32_t sector = first_fat_sector(f16) + (((uint32_t)cluster_index) * 2) / f16->header.bytes_per_sector;
+    uint32_t offset = ((uint32_t)cluster_index) % (f16->header.bytes_per_sector / 2);
+    uint16_t sector_data[512 / 2];
+    bdev_read(f16->dev, sector, 1, sector_data);
+
+    uint16_t result = sector_data[offset];
+    return result;
+}
+
+static list* cluster_chain_to_blocks(fs_fat16* f16, uint16_t start_cluster) {
+    list* result = list_create();
+
+    uint16_t cluster_index = start_cluster;
+    while (1) {
+        ASSERT(cluster_index != 0); // reserved (index means "free")
+        ASSERT(cluster_index != 1); // reserved (future use)
+        ASSERT(cluster_index != 0xFFF7); // bad cluster
+        if (cluster_index >= 0xFFF8) {
+            break;
+        }
+        ASSERT( cluster_index < data_clusters(f16) );
+
+        uint32_t start_sector_of_cluster = first_data_sector(f16) + (cluster_index - 2) * f16->header.sectors_per_cluster;
+        for (int s = 0; s < f16->header.sectors_per_cluster; s++) {
+            uint32_t sector = start_sector_of_cluster + s;
+            list_append(result, sector);
+        }
+
+        cluster_index = next_cluster(f16, cluster_index);
+    }
+
+    return result;
+}
+
+
 static bdev* fat16_open_file(filesystem* fs, fs_path* path) {
     ASSERT(fs->vtable == &fat16_vtable);
     ASSERT(path != 0);
@@ -145,18 +203,18 @@ static bdev* fat16_open_file(filesystem* fs, fs_path* path) {
         list_append(root_dir_sector_list, s);
     }
 
-    fat16_directory_entry entry = traverse(f16, root_dir_sector_list, path);
-    list_free(root_dir_sector_list);
+    bdev* directory = bdev_slice_create(f16->dev, root_dir_sector_list, count * f16->header.bytes_per_sector);
+    fat16_directory_entry entry = traverse(f16, directory, path);
+    bdev_close(directory);
 
     dprint_str("File length: ");
     dprint_dec(entry.file_length);
     dprint_str("\n");
 
+    ASSERT(entry.first_cluster_high == 0);
+    list* file_blocks = cluster_chain_to_blocks(f16, entry.first_cluster_low);
 
-
-    ASSERT(0); // TODO: return the file as a bdev..
-
-    return 0;
+    return bdev_slice_create(f16->dev, file_blocks, entry.file_length);
 }
 
 static void fat16_close(filesystem* fs) {
@@ -181,22 +239,9 @@ filesystem* fat16_open(bdev* dev) {
     memcpy(header, &(result->header), sizeof(fat16_header));
     ASSERT(dev->block_size == result->header.bytes_per_sector);
 
-    dprint_dec(result->header.signature);
+    dprint_str("Opened FAT16 filesystem, total sectors: ");
+    dprint_dec(total_sectors(result));
     dprint_str("\n");
-    dprint_dec(result->header.bytes_per_sector);
-    dprint_str("\n");
-    dprint_dec(result->header.sectors_per_cluster);
-    dprint_str("\n");
-    dprint_dec(result->header.sector_count);
-    dprint_str("\n");
-    dprint_dec(result->header.large_sector_count);
-    dprint_str("\n");
-    dprint_dec(result->header.root_directory_entries_count);
-    dprint_str("\n");
-    dprint_dec(result->header.reserved_sector_count);
-    dprint_str("\n");
-    dprint_dec(result->header.fat_count);
-    dprint_str("\nfin.\n");
 
     return &(result->base);
 }

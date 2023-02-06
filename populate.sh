@@ -10,4 +10,5 @@ set fish_trace on
 mkdir -p ./mnt
 sudo mount -t vfat ./bin/os.bin ./mnt
 echo "Hello World!" | sudo dd of=./mnt/hello.txt
+find ./src/ -type f | xargs -- cat | sudo dd of=./mnt/hello.txt
 sudo umount ./mnt

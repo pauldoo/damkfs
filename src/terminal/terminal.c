@@ -39,7 +39,7 @@ void print_clear(printer* p) {
     p->y = 0;
 }
 
-static void print_char(printer* p, char c) {
+void print_char(printer* p, char c) {
     ASSERT(p != 0)
     ASSERT(p->x >= 0 && p->x < terminal_width)
     ASSERT(p->y >= 0 && p->y < terminal_width)
@@ -55,6 +55,9 @@ static void print_char(printer* p, char c) {
         p->y++;
         if (p->y >= terminal_height) {
             p->y = 0;
+        }
+        for (int x = 0; x <= terminal_width; x++) {
+            terminal_put_char(x, p->y, ' ', p->fg, p->bg);
         }
     }
 }

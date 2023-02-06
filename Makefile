@@ -10,6 +10,7 @@ FILES = \
   ./build/idt/idt.o \
   ./build/io/io.asm.o \
   ./build/disk/bdev.o \
+  ./build/disk/bdev_slice.o \
   ./build/disk/disk.o \
   ./build/fs/fat16.o \
   ./build/fs/filesystem.o \
