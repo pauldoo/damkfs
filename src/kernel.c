@@ -107,6 +107,7 @@ void kernel_main() {
     // Test FS
     filesystem* fs = fat16_open(default_disk);
     dump_file(fs, "/HELLO.TXT");
+    dump_file(fs, "/SUB/DIR/SOURCE.TXT");
     filesystem_close(fs);
 
     // Fin.

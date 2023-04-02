@@ -8,7 +8,11 @@ set fish_trace on
 # within containers.
 
 mkdir -p ./mnt
-sudo mount -t vfat ./bin/os.bin ./mnt
-echo "Hello World!" | sudo dd of=./mnt/hello.txt
-find ./src/ -type f | xargs -- cat | sudo dd of=./mnt/hello.txt
+sudo mount -t vfat -o rw,uid=(id -u),gid=(id -g) ./bin/os.bin ./mnt
+
+echo "Hello World!" | dd of=./mnt/hello.txt
+
+mkdir -p ./mnt/sub/dir
+find ./src/ -type f | xargs -- cat | dd of=./mnt/sub/dir/source.txt
+
 sudo umount ./mnt

@@ -61,6 +61,16 @@ typedef struct cluster_chain_bdev_t {
 
 static const int DIRS_PER_SECTOR = 512 / sizeof(fat16_directory_entry);
 
+
+static const uint8_t ATTRIBUTE_READ_ONLY = 0x01;
+static const uint8_t ATTRIBUTE_HIDDEN = 0x02;
+static const uint8_t ATTRIBUTE_SYSTEM = 0x04;
+static const uint8_t ATTRIBUTE_VOLUME_ID = 0x08;
+static const uint8_t ATTRIBUTE_DIRECTORY = 0x10;
+static const uint8_t ATTRIBUTE_ARCHIVE = 0x20;
+static const uint8_t ATTRIBUTE_LONG_FILE_NAME = ATTRIBUTE_READ_ONLY | ATTRIBUTE_HIDDEN | ATTRIBUTE_SYSTEM | ATTRIBUTE_VOLUME_ID;
+
+
 static bdev* fat16_open_file(filesystem*, fs_path*);
 static void fat16_close(filesystem*);
 
@@ -108,48 +118,29 @@ static bool name_matches(const char* name, fat16_directory_entry* entry) {
         n += 1;
     }
 
-    if (name[n] != '.') {
-        return false;
-    }
-    n += 1;
+    if ( entry->filename_3[0] != ' ' ) {
+        // entry on FS has an extension
 
-    for (int i = 0; i < 3; i += 1) {
-        if (entry->filename_3[i] == ' ') {
-            break;
-        }
-        if (name[n] != entry->filename_3[i]) {
+        if ( (name[n] != '.') ) {
             return false;
         }
         n += 1;
+
+        for (int i = 0; i < 3; i += 1) {
+            if (entry->filename_3[i] == ' ') {
+                break;
+            }
+            if (name[n] != entry->filename_3[i]) {
+                return false;
+            }
+            n += 1;
+        }
     }
 
     if (name[n] != 0) {
         return false;
     }
     return true;
-}
-
-static fat16_directory_entry traverse(fs_fat16* f16, bdev* directory, fs_path* path) {
-    ASSERT(f16->header.bytes_per_sector == 512);
-    ASSERT(directory->block_size == 512);
-
-    for (uint32_t i = 0; i < bdev_block_count(directory); i++) {
-        fat16_directory_entry dirs[DIRS_PER_SECTOR];
-        bdev_read(directory, i, 1, &(dirs[0]));
-        
-        for (int j = 0; j < DIRS_PER_SECTOR; j++) {
-            if (dirs[j].filename_8[0] == 0) {
-                ASSERT(0); // TODO: entry not found
-            }
-
-            if (name_matches(path->part, &(dirs[j]))) {
-                ASSERT(path->next == 0); // TODO: recursive..
-
-                return dirs[j];
-            }
-        }
-    }
-    ASSERT(0);
 }
 
 static uint16_t next_cluster(fs_fat16* f16, uint16_t cluster_index) {
@@ -190,6 +181,83 @@ static list* cluster_chain_to_blocks(fs_fat16* f16, uint16_t start_cluster) {
     return result;
 }
 
+static void dprint_entry(fat16_directory_entry* entry) {
+    dprint_char('\'');
+    for (int i = 0; i < 8; i++) {
+        if (entry->filename_8[i] == ' ') {
+            break;
+        }
+        dprint_char(entry->filename_8[i]);
+    }
+    dprint_char('\'');
+    if (entry->filename_3[0] != ' ') {
+        dprint_char('.');
+        dprint_char('\'');
+        for (int i = 0; i < 3; i++) {
+            if (entry->filename_3[i] == ' ') {
+                break;
+            }
+            dprint_char(entry->filename_3[i]);
+        }
+        dprint_char('\'');
+    }
+
+    if (entry->attributes == ATTRIBUTE_LONG_FILE_NAME) {
+        dprint_str(" LFN");
+    } else {
+        if (entry->attributes & ATTRIBUTE_READ_ONLY) {
+            dprint_str(" RO");
+        }
+        if (entry->attributes & ATTRIBUTE_HIDDEN) {
+            dprint_str(" HIDDEN");
+        }
+        if (entry->attributes & ATTRIBUTE_SYSTEM) {
+            dprint_str(" SYSTEM");
+        }
+        if (entry->attributes & ATTRIBUTE_VOLUME_ID) {
+            dprint_str(" VOLID");
+        }
+    }
+    if (entry->attributes & ATTRIBUTE_DIRECTORY) {
+        dprint_str(" DIR");
+    }
+    if (entry->attributes & ATTRIBUTE_ARCHIVE) {
+        dprint_str(" ARCHIVE");
+    }
+
+    dprint_char('\n');
+}
+
+static bool traverse(fs_fat16* f16, bdev* directory, fs_path* path, fat16_directory_entry* out) {
+    ASSERT(f16->header.bytes_per_sector == 512);
+    ASSERT(directory->block_size == 512);
+
+    for (uint32_t i = 0; i < bdev_block_count(directory); i++) {
+        fat16_directory_entry dirs[DIRS_PER_SECTOR];
+        bdev_read(directory, i, 1, &(dirs[0]));
+        
+        for (int j = 0; j < DIRS_PER_SECTOR; j++) {
+            if (dirs[j].filename_8[0] == 0) {
+                return false;
+            }
+
+            if (name_matches(path->part, &(dirs[j]))) {
+                if (path->next == 0) {
+                    *out = dirs[j];
+                    return true;
+                } 
+                if (dirs[j].attributes & ATTRIBUTE_DIRECTORY) {
+                    list* subdir_blocks = cluster_chain_to_blocks(f16, dirs[j].first_cluster_low);    
+                    bdev* subdirectory = bdev_slice_create(f16->dev, subdir_blocks, list_size(subdir_blocks) * f16->header.bytes_per_sector);
+                    bool result = traverse(f16, subdirectory, path->next, out);
+                    bdev_close(subdirectory);
+                    return result;
+                }
+            }
+        }
+    }
+    ASSERT(0);
+}
 
 static bdev* fat16_open_file(filesystem* fs, fs_path* path) {
     ASSERT(fs->vtable == &fat16_vtable);
@@ -204,8 +272,14 @@ static bdev* fat16_open_file(filesystem* fs, fs_path* path) {
     }
 
     bdev* directory = bdev_slice_create(f16->dev, root_dir_sector_list, count * f16->header.bytes_per_sector);
-    fat16_directory_entry entry = traverse(f16, directory, path);
+    fat16_directory_entry entry = {0};
+    bool did_find = traverse(f16, directory, path, &entry);
     bdev_close(directory);
+    ASSERT( did_find );
+
+    dprint_entry(&entry);
+
+    ASSERT( (entry.attributes & (ATTRIBUTE_DIRECTORY | ATTRIBUTE_VOLUME_ID)) == 0);
 
     dprint_str("File length: ");
     dprint_dec(entry.file_length);

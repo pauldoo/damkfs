@@ -43,12 +43,15 @@ void print_char(printer* p, char c);
 void print_str(printer* p, const char* s);
 void print_dec(printer* p, uint32_t);
 void print_hex(printer* p, uint32_t);
+void print_ln(printer* p);
 
 // Utils for default printer
 void dprint_clear();
 void dprint_str(const char* s);
+void dprint_char(const char s);
 void dprint_dec(uint32_t v);
 void dprint_hex(uint32_t v);
+void dprint_ln();
 
 
 

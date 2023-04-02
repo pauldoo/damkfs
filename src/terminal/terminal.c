@@ -122,11 +122,21 @@ void print_hex(printer* p, uint32_t num) {
     print_number_imp(p, num, 16, "0123456789abcdef");
 }
 
+void print_ln(printer* p) {
+    print_str(p, "\n");
+}
+
 void dprint_clear() {
     print_clear(&default_printer);
 }
 void dprint_str(const char* s) {
     print_str(&default_printer, s);
+}
+void dprint_ln() {
+    print_ln(&default_printer);
+}
+void dprint_char(const char s) {
+    print_char(&default_printer, s);
 }
 void dprint_dec(uint32_t v) {
     print_dec(&default_printer, v);
