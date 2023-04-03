@@ -22,6 +22,7 @@ typedef struct fat16_header_t {
     uint16_t head_count;
     uint32_t hidden_sector_count;
     uint32_t large_sector_count;
+    // extended
     uint8_t drive_number;
     uint8_t winnt_flags;
     uint8_t signature;
@@ -61,6 +62,7 @@ typedef struct cluster_chain_bdev_t {
 
 static const int DIRS_PER_SECTOR = 512 / sizeof(fat16_directory_entry);
 
+static const uint16_t FAT16_SIGNATURE = 0x29;
 
 static const uint8_t ATTRIBUTE_READ_ONLY = 0x01;
 static const uint8_t ATTRIBUTE_HIDDEN = 0x02;
@@ -240,6 +242,10 @@ static bool traverse(fs_fat16* f16, bdev* directory, fs_path* path, fat16_direct
             if (dirs[j].filename_8[0] == 0) {
                 return false;
             }
+            if (dirs[j].filename_8[0] == 0xE5) {
+                // unused
+                continue;
+            }
 
             if (name_matches(path->part, &(dirs[j]))) {
                 if (path->next == 0) {
@@ -311,6 +317,7 @@ filesystem* fat16_open(bdev* dev) {
     uint8_t header[512] = {0};;
     bdev_read(dev, 0, 1, header);
     memcpy(header, &(result->header), sizeof(fat16_header));
+    ASSERT(result->header.signature == FAT16_SIGNATURE);
     ASSERT(dev->block_size == result->header.bytes_per_sector);
 
     dprint_str("Opened FAT16 filesystem, total sectors: ");
